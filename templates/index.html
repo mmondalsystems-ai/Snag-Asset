@@ -1,0 +1,2422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="/static/shim.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Orchard Amritaya — Snag Check</title>
+<style>
+:root {
+  --navy:#0f2744; --blue:#1a4a7a; --accent:#2563eb; --teal:#0891b2;
+  --white:#fff; --bg:#f1f5f9; --surface:#fff; --border:#cbd5e1;
+  --text:#0f172a; --muted:#64748b;
+  --st-pend-bg:#fee2e2; --st-pend-tx:#b91c1c; --st-pend-bd:#fca5a5;
+  --st-prog-bg:#dbeafe; --st-prog-tx:#1d4ed8; --st-prog-bd:#93c5fd;
+  --st-done-bg:#dcfce7; --st-done-tx:#15803d; --st-done-bd:#86efac;
+  --st-na-bg:#f8fafc;   --st-na-tx:#64748b;   --st-na-bd:#cbd5e1;
+  --danger:#dc2626; --success:#16a34a;
+  --r1s:#2563eb; --r1d:#16a34a; --r2s:#7c3aed; --r2d:#d97706;
+  --radius:10px; --rsm:6px;
+  --sh:0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06);
+  --sh-md:0 4px 12px rgba(0,0,0,.10),0 8px 24px rgba(0,0,0,.08);
+  --sh-lg:0 8px 32px rgba(15,39,68,.18);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+button{cursor:pointer;font-family:inherit;font-size:13px;border:none;border-radius:var(--rsm);padding:8px 16px;transition:all .18s;font-weight:600;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+input,select,textarea{font-family:inherit;font-size:16px;border:1.5px solid var(--border);border-radius:var(--rsm);padding:10px 12px;outline:none;width:100%;transition:border .15s,box-shadow .15s;background:var(--white);color:var(--text);-webkit-appearance:none;appearance:none}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+textarea{resize:vertical;min-height:48px;-webkit-appearance:none}
+label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:5px}
+h2{font-size:18px;font-weight:800;color:var(--navy)}
+.form-group{margin-bottom:16px}
+
+/* LOGIN */
+#loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(145deg,#0f2744 0%,#1a4a7a 50%,#0891b2 100%);position:relative;overflow:hidden;padding:16px}
+#loginScreen::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 70% 30%,rgba(8,145,178,.25) 0%,transparent 60%),radial-gradient(ellipse at 20% 80%,rgba(37,99,235,.2) 0%,transparent 50%)}
+.login-card{background:rgba(255,255,255,.97);border-radius:20px;padding:40px 36px;width:100%;max-width:400px;box-shadow:var(--sh-lg);position:relative;z-index:1}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-icon{font-size:38px;display:block;margin-bottom:8px}
+.login-logo .brand{font-size:22px;font-weight:900;color:var(--navy)}
+.login-logo .sub{font-size:11px;color:var(--muted);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:1.2px}
+.login-divider{width:40px;height:3px;background:linear-gradient(90deg,var(--accent),var(--teal));border-radius:2px;margin:10px auto 0}
+.login-subtitle{text-align:center;color:var(--muted);font-size:13px;margin-bottom:22px}
+.pin-wrap{position:relative}
+.pin-wrap input{padding-right:46px;letter-spacing:4px;font-size:18px;font-weight:700}
+.pin-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;padding:6px;color:var(--muted);font-size:17px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:4px}
+.pin-eye:hover{background:var(--bg)}
+.btn-login{width:100%;padding:14px;border-radius:var(--rsm);margin-top:8px;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;font-size:15px;font-weight:800;box-shadow:0 4px 14px rgba(15,39,68,.35)}
+.btn-login:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(15,39,68,.45)}
+.login-err{color:var(--danger);font-size:13px;text-align:center;margin-top:10px;min-height:20px;font-weight:600}
+
+/* APP */
+#app{display:none;flex-direction:column;min-height:100vh}
+
+/* TOPBAR */
+.topbar{background:linear-gradient(90deg,var(--navy),var(--blue));color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:54px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.topbar-brand{font-size:15px;font-weight:900;display:flex;align-items:center;gap:7px}
+.topbar-brand span{color:#67e8f9}
+.topbar-user{display:flex;align-items:center;gap:8px;font-size:12px}
+.topbar-name{font-weight:700;opacity:.9;font-size:12px}
+.topbar-role{background:rgba(255,255,255,.15);padding:3px 10px;border-radius:20px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;font-size:10px;border:1px solid rgba(255,255,255,.2)}
+.btn-logout{background:rgba(255,255,255,.12);color:#fff;padding:6px 12px;border-radius:var(--rsm);font-size:12px;border:1px solid rgba(255,255,255,.2)}
+.btn-logout:hover{background:rgba(255,255,255,.22)}
+
+/* TABS */
+.tabs{background:#fff;border-bottom:1px solid var(--border);display:flex;padding:0 20px;gap:2px;position:sticky;top:54px;z-index:99;box-shadow:0 1px 4px rgba(0,0,0,.05);overflow-x:auto}
+.tab{padding:12px 18px;font-size:13px;font-weight:700;color:var(--muted);border:none;background:none;border-bottom:3px solid transparent;margin-bottom:-1px;cursor:pointer;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tab:hover{color:var(--accent)}
+.tab.active{color:var(--navy);border-bottom-color:var(--accent)}
+
+/* CONTENT */
+.content{flex:1;padding:18px 20px;max-width:1600px;width:100%;margin:0 auto}
+
+/* SECTION TOGGLE */
+.section-toggle{display:inline-flex;margin-bottom:16px;border-radius:var(--radius);overflow:hidden;border:2px solid var(--border);box-shadow:var(--sh)}
+.sec-btn{padding:10px 26px;font-size:13px;font-weight:700;background:#fff;color:var(--muted);border:none;cursor:pointer;transition:all .18s}
+.sec-btn.active{background:var(--navy);color:#fff}
+.sec-btn:hover:not(.active){background:#f8fafc;color:var(--navy)}
+
+/* CARD */
+.card{background:#fff;border-radius:var(--radius);box-shadow:var(--sh);border:1px solid var(--border)}
+.card-body{padding:18px}
+
+/* FLAT SELECTOR */
+.flat-selector{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.flat-selector .form-group{margin:0;min-width:130px;flex:1}
+.flat-meta{background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;border-radius:var(--radius);padding:14px 18px;display:flex;gap:20px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.flat-meta-item{display:flex;flex-direction:column;gap:3px}
+.flat-meta-item .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.9px;opacity:.55;font-weight:700}
+.flat-meta-item .val{font-size:15px;font-weight:800}
+.progress-wrap{flex:1;background:rgba(255,255,255,.15);border-radius:10px;height:6px;overflow:hidden;min-width:70px}
+.progress-fill{height:100%;background:linear-gradient(90deg,#67e8f9,#a5f3fc);border-radius:10px;transition:width .4s ease}
+
+/* ROUND TOGGLES */
+.round-toggles{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.round-toggle{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;border:2px solid;cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.5px}
+.round-toggle.r1s{color:var(--r1s);border-color:var(--r1s)}.round-toggle.r1s.active{background:var(--r1s);color:#fff}
+.round-toggle.r1d{color:var(--r1d);border-color:var(--r1d)}.round-toggle.r1d.active{background:var(--r1d);color:#fff}
+.round-toggle.r2s{color:var(--r2s);border-color:var(--r2s)}.round-toggle.r2s.active{background:var(--r2s);color:#fff}
+.round-toggle.r2d{color:var(--r2d);border-color:var(--r2d)}.round-toggle.r2d.active{background:var(--r2d);color:#fff}
+
+/* SNAG TABLE */
+.snag-table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--sh);-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+/* Clickable truncated cells */
+table.snag-table td.txt-cell{cursor:pointer}
+table.snag-table td.txt-cell:hover{background:#f0f7ff!important;color:var(--accent)}
+table.snag-table{width:100%;border-collapse:collapse;font-size:13px}
+table.snag-table th{background:linear-gradient(180deg,#1e3a5f,#0f2744);color:#fff;padding:10px 12px;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px;white-space:normal;word-break:break-word;position:sticky;top:0;z-index:10;max-width:160px;min-width:70px;line-height:1.3}
+table.snag-table td{padding:8px 10px;border-bottom:1px solid #f1f5f9;vertical-align:top;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+table.snag-table tr:nth-child(even) td{background:#fafbfc}
+table.snag-table tr:hover td{background:#f0f7ff!important}
+.loc-header td{background:linear-gradient(90deg,#e8f0fe,#f0f7ff);font-weight:800;color:var(--navy);font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:6px 12px;border-left:3px solid var(--accent)}
+/* Sticky columns — explicit white bg to prevent bleed-through */
+td.sticky-loc{
+  position:sticky;left:0;z-index:5;
+  background:#ffffff;
+  min-width:130px;max-width:150px;width:140px;
+  font-weight:700;font-size:12px;color:var(--navy);
+  box-shadow:2px 0 4px rgba(0,0,0,.06);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  cursor:pointer;
+}
+td.sticky-pt{
+  position:sticky;left:140px;z-index:5;
+  background:#ffffff;
+  min-width:200px;max-width:240px;width:220px;
+  font-size:12px;line-height:1.5;
+  box-shadow:2px 0 4px rgba(0,0,0,.06);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+th.sticky-loc{position:sticky;left:0;z-index:11;min-width:140px;max-width:140px;width:140px}
+th.sticky-pt{position:sticky;left:140px;z-index:11;min-width:220px;max-width:220px;width:220px}
+/* Even rows need explicit bg on sticky cells */
+table.snag-table tr:nth-child(even) td.sticky-loc,
+table.snag-table tr:nth-child(even) td.sticky-pt{background:#fafbfc}
+table.snag-table tr:hover td.sticky-loc,
+table.snag-table tr:hover td.sticky-pt{background:#f0f7ff!important}
+/* Location header row sticky */
+.loc-header td.sticky-loc,.loc-header td{background:linear-gradient(90deg,#e8f0fe,#f0f7ff)!important}
+
+/* STATUS DROPDOWN */
+.status-sel{border:2px solid;padding:5px 8px;border-radius:20px;font-size:11px;font-weight:800;cursor:pointer;text-align:center;min-width:90px;background-image:none;padding-right:8px}
+.status-Pending   {background:var(--st-pend-bg);color:var(--st-pend-tx);border-color:var(--st-pend-bd)}
+.status-InProgress{background:var(--st-prog-bg);color:var(--st-prog-tx);border-color:var(--st-prog-bd)}
+.status-Done      {background:var(--st-done-bg);color:var(--st-done-tx);border-color:var(--st-done-bd)}
+.status-NA        {background:var(--st-na-bg);  color:var(--st-na-tx);  border-color:var(--st-na-bd)}
+
+/* REMARK CELL */
+.remark-cell{min-width:180px;max-width:230px}
+.remark-cell textarea{min-height:38px;font-size:12px;border-color:transparent;background:#f8fafc;resize:none;padding:5px 8px;border-radius:5px}
+.remark-cell textarea:focus{border-color:var(--accent);background:#fff}
+.remark-cell textarea[readonly]{color:var(--muted);cursor:default;background:#f1f5f9}
+
+/* EDITABLE MASTER CELL */
+.master-cell{min-width:120px;max-width:170px}
+.master-input-wrap{font-size:12px;color:var(--text);padding:5px 8px;border-radius:5px;background:#f8fafc;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:1.5px solid transparent;transition:all .15s;min-height:28px;display:block}
+.master-input-wrap:hover{border-color:var(--accent);background:#eff6ff;color:var(--navy)}
+.master-input-wrap.readonly{cursor:default;background:transparent}
+.remark-edit-wrap{font-size:12px;color:var(--text);padding:5px 8px;border-radius:5px;background:#f8fafc;cursor:pointer;min-height:30px;border:1.5px solid transparent;transition:all .15s;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.remark-edit-wrap:hover{border-color:var(--accent);background:#eff6ff;color:var(--navy)}
+.remark-ro{font-size:12px;color:var(--muted);font-style:italic;padding:4px 2px;cursor:pointer}
+.remark-ro:hover{color:var(--accent)}
+.master-input{font-size:12px;padding:4px 7px;border-color:transparent;background:#f8fafc;border-radius:5px;min-width:0}
+.master-input:focus{border-color:var(--accent);background:#fff}
+.master-input[readonly]{color:var(--muted);cursor:default;background:transparent;border-color:transparent}
+
+/* NUM BADGE / qty input */
+.num-badge{display:inline-flex;align-items:center;justify-content:center;background:#e0f2fe;color:#0369a1;border-radius:12px;padding:2px 9px;font-size:11px;font-weight:800;min-width:28px}
+.qty-input{width:64px;font-size:12px;padding:4px 7px;border-radius:5px;border-color:transparent;background:#f8fafc;font-weight:700;text-align:center}
+.qty-input:focus{border-color:var(--accent);background:#fff}
+.qty-input[readonly]{background:#e0f2fe;color:#0369a1;cursor:default;font-weight:800}
+
+/* PHOTO CELL */
+.photo-cell{min-width:100px}
+.photo-thumbs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:5px}
+.photo-thumb{width:36px;height:36px;object-fit:cover;border-radius:5px;border:2px solid var(--border);cursor:pointer;transition:all .18s}
+.photo-thumb:hover{transform:scale(1.12);border-color:var(--accent)}
+.photo-btns{display:flex;flex-direction:column;gap:3px}
+.btn-photo{display:inline-flex;align-items:center;justify-content:center;gap:3px;padding:4px 8px;border-radius:5px;font-size:10px;font-weight:700;border:1.5px solid;cursor:pointer;transition:all .15s;white-space:nowrap;width:100%}
+.btn-ph-gal{background:#eff6ff;color:var(--accent);border-color:#bfdbfe}
+.btn-ph-gal:hover{background:#dbeafe}
+.btn-ph-cam{background:#f0fdf4;color:#16a34a;border-color:#86efac}
+.btn-ph-cam:hover{background:#dcfce7}
+/* Photo thumbnail with delete button */
+.photo-wrap{position:relative;display:inline-block}
+.photo-wrap:hover .btn-del-photo{opacity:1}
+.btn-del-photo{
+  position:absolute;top:-5px;right:-5px;width:18px;height:18px;
+  background:var(--danger);color:#fff;border:none;border-radius:50%;
+  font-size:9px;font-weight:900;cursor:pointer;opacity:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .15s;padding:0;line-height:1;z-index:10;
+}
+.btn-del-photo:hover{background:#b91c1c;opacity:1!important}
+
+/* COL VISIBILITY */
+.col-r1s.hidden,.col-r1d.hidden,.col-r2s.hidden,.col-r2d.hidden{display:none}
+
+/* STATS */
+.status-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.stat-chip{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius);font-size:12px;font-weight:700;border:1.5px solid;box-shadow:var(--sh)}
+.stat-chip.total{color:var(--navy);border-color:var(--border);background:#fff}
+.stat-chip.pend {color:var(--st-pend-tx);border-color:var(--st-pend-bd);background:var(--st-pend-bg)}
+.stat-chip.prog {color:var(--st-prog-tx);border-color:var(--st-prog-bd);background:var(--st-prog-bg)}
+.stat-chip.done {color:var(--st-done-tx);border-color:var(--st-done-bd);background:var(--st-done-bg)}
+.stat-chip .num{font-size:15px;font-weight:900}
+
+/* TEAM */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:14px}
+.team-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);padding:16px 18px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--sh)}
+.team-card-top{display:flex;align-items:center;gap:12px}
+.avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;flex-shrink:0;box-shadow:0 3px 10px rgba(15,39,68,.25)}
+.team-name{font-weight:800;font-size:14px;color:var(--navy)}
+.team-role-badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+.role-Admin   {background:#fef3dc;color:#92400e;border:1px solid #fcd97a}
+.role-Snag    {background:#dbeafe;color:#1e40af;border:1px solid #93c5fd}
+.role-De-Snag {background:#dcfce7;color:#14532d;border:1px solid #86efac}
+.role-Viewer  {background:#f1f5f9;color:#475569;border:1px solid #cbd5e1}
+.team-actions{display:flex;gap:7px}
+
+/* BUTTONS */
+.btn-sm{padding:7px 13px;font-size:12px;font-weight:700;border-radius:var(--rsm)}
+.btn-edit{background:#eff6ff;color:var(--accent);border:1.5px solid #bfdbfe}.btn-edit:hover{background:#dbeafe}
+.btn-del{background:#fff1f2;color:var(--danger);border:1.5px solid #fecdd3}.btn-del:hover{background:#ffe4e6}
+.btn-accent{background:linear-gradient(135deg,var(--accent),#1d4ed8);color:#fff;font-weight:700;box-shadow:0 2px 8px rgba(37,99,235,.28)}
+.btn-accent:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(37,99,235,.38)}
+.btn-navy{background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;font-weight:700;box-shadow:0 2px 8px rgba(15,39,68,.22)}
+.btn-navy:hover{transform:translateY(-1px)}
+.btn-teal{background:linear-gradient(135deg,var(--teal),#0e7490);color:#fff;font-weight:700}
+.btn-teal:hover{transform:translateY(-1px)}
+
+/* LOG */
+.log-table{width:100%;border-collapse:collapse;font-size:12px}
+.log-table th{background:#f8fafc;color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:.5px;padding:8px 12px;border-bottom:2px solid var(--border);font-weight:700;white-space:normal;word-break:break-word}
+.log-table td{padding:8px 12px;border-bottom:1px solid #f1f5f9;vertical-align:middle;word-break:break-word;white-space:normal;max-width:200px}
+.log-table tr:hover td{background:#f8fafc}
+.log-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:#eff6ff;color:var(--accent);border:1px solid #bfdbfe;white-space:nowrap}
+.log-sec-snag {display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd}
+.log-sec-asset{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:#fef3dc;color:#92400e;border:1px solid #fcd97a}
+.log-time{color:var(--muted);font-size:11px;white-space:nowrap}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(2px)}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:14px;padding:26px;width:100%;max-width:420px;box-shadow:var(--sh-lg);animation:modalIn .2s ease}
+@keyframes modalIn{from{transform:scale(.94) translateY(10px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.modal-header h3{font-size:16px;font-weight:800;color:var(--navy)}
+.btn-close{background:none;border:none;font-size:22px;color:var(--muted);padding:2px 6px;border-radius:5px;width:auto;line-height:1}
+.btn-close:hover{background:var(--bg)}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.btn-cancel{background:var(--bg);color:var(--muted);border:1.5px solid var(--border)}.btn-cancel:hover{background:var(--border)}
+.btn-save{background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;font-weight:800}.btn-save:hover{transform:translateY(-1px)}
+
+/* Photo viewer */
+.photo-modal-img{width:100%;border-radius:var(--radius);margin-bottom:12px;max-height:60vh;object-fit:contain;background:#f1f5f9}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;z-index:9999;padding:11px 18px;border-radius:var(--radius);font-size:13px;font-weight:700;box-shadow:var(--sh-lg);transform:translateY(80px);opacity:0;transition:all .3s cubic-bezier(.175,.885,.32,1.275);pointer-events:none;display:flex;align-items:center;gap:8px;max-width:280px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.info   {background:var(--navy);color:#fff}
+.toast.success{background:linear-gradient(135deg,#16a34a,#15803d);color:#fff}
+.toast.error  {background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff}
+.toast.upload {background:linear-gradient(135deg,var(--teal),#0e7490);color:#fff}
+
+/* LOADING / EMPTY */
+.loading{display:flex;align-items:center;justify-content:center;padding:56px;gap:12px;color:var(--muted);font-weight:600}
+.spinner{width:22px;height:22px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:56px 24px;color:var(--muted)}
+.empty-icon{font-size:44px;margin-bottom:10px;display:block}
+.empty-txt{font-size:14px;font-weight:600}
+
+.ml-auto{margin-left:auto}.hidden{display:none!important}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:#f1f5f9}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}
+
+/* MOBILE */
+/* ── RESPONSIVE ── */
+
+/* Tablet */
+@media(max-width:900px){
+  .content{padding:14px 16px}
+  .team-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+  .flat-meta{gap:16px}
+}
+
+/* Mobile */
+@media(max-width:600px){
+  /* Login */
+  .login-card{padding:28px 20px;border-radius:14px}
+  .login-logo .brand{font-size:20px}
+
+  /* Topbar */
+  .topbar{padding:0 12px;height:50px}
+  .topbar-brand{font-size:13px}
+  .topbar-name{display:none} /* hide name on mobile, role badge stays */
+  .topbar-role{font-size:9px;padding:2px 8px}
+  .btn-logout{padding:5px 10px;font-size:11px}
+
+  /* Tabs */
+  .tabs{padding:0 8px;overflow-x:auto;gap:0}
+  .tab{padding:10px 10px;font-size:11px;gap:4px;white-space:nowrap}
+
+  /* Content */
+  .content{padding:12px 10px}
+
+  /* Flat selector */
+  .flat-selector{flex-direction:column;gap:8px}
+  .flat-selector .form-group{min-width:unset;width:100%}
+  #adminFlatActions{width:100%}
+
+  /* Flat meta */
+  .flat-meta{gap:12px;padding:10px 14px}
+  .flat-meta-item .val{font-size:13px}
+  .progress-wrap{min-width:50px}
+
+  /* Stats */
+  .status-bar{gap:6px}
+  .stat-chip{padding:6px 10px;font-size:11px}
+  .stat-chip .num{font-size:13px}
+
+  /* Round toggles */
+  .round-toggles{gap:5px}
+  .round-toggle{padding:4px 9px;font-size:10px}
+
+  /* Section toggle */
+  .section-toggle{width:100%}
+  .sec-btn{flex:1;padding:9px 10px;font-size:12px}
+
+  /* Table — force horizontal scroll, make it usable */
+  .snag-table-wrap{border-radius:6px}
+  table.snag-table th{padding:8px 8px;font-size:10px}
+  table.snag-table td{padding:6px 8px;font-size:12px}
+  td.sticky-loc{min-width:90px;max-width:90px;width:90px;font-size:11px}
+  td.sticky-pt{min-width:140px;max-width:140px;width:140px;left:90px;font-size:11px}
+  th.sticky-loc{min-width:90px;max-width:90px;width:90px}
+  th.sticky-pt{min-width:140px;max-width:140px;width:140px;left:90px}
+  .status-sel{min-width:75px;font-size:10px;padding:4px 6px}
+  .remark-cell{min-width:130px;max-width:160px}
+  .remark-cell textarea{font-size:11px;min-height:34px}
+  .master-cell{min-width:100px;max-width:120px}
+  .master-input{font-size:11px}
+  .photo-cell{min-width:80px}
+  .btn-photo{font-size:9px;padding:3px 6px}
+  .photo-thumb,.btn-del-photo-wrap{width:32px;height:32px}
+
+  /* Team */
+  .section-header{flex-direction:column;align-items:flex-start;gap:8px}
+  .team-grid{grid-template-columns:1fr}
+
+  /* Modal */
+  .modal{padding:20px 16px;border-radius:12px}
+  .modal-header h3{font-size:14px}
+
+  /* Dashboard */
+  .db-filter{flex-direction:column}
+  #dbReport1 h2,#dbReport2 h2{font-size:14px}
+
+  /* Log */
+  .log-table th,.log-table td{padding:6px 8px;font-size:11px}
+}
+
+/* Small phones */
+@media(max-width:380px){
+  .tab{padding:9px 7px;font-size:10px}
+  .topbar-brand span{display:none}
+  .stat-chip{padding:5px 8px;font-size:10px}
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="login-icon">🏗️</span>
+      <div class="brand">Orchard Amritaya</div>
+      <div class="sub">Snag Check System</div>
+      <div class="login-divider"></div>
+    </div>
+    <p class="login-subtitle">Sign in to your account</p>
+    <div class="form-group">
+      <label>Username</label>
+      <select id="loginUser" style="font-size:15px;padding:12px 34px 12px 12px">
+        <option value="">Select username...</option>
+        <!--USERNAME_OPTIONS-->
+      </select>
+    </div>
+    <div class="form-group">
+      <label>PIN</label>
+      <div class="pin-wrap">
+        <input type="password" id="loginPin" placeholder="• • • •" maxlength="10" inputmode="numeric" pattern="[0-9]*">
+        <button class="pin-eye" id="btnPinEye" type="button">👁</button>
+      </div>
+    </div>
+    <button class="btn-login" id="btnLogin" type="button">Sign In →</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <div class="topbar">
+    <div class="topbar-brand">🏗️ Orchard <span>Amritaya</span></div>
+    <div class="topbar-user">
+      <span class="topbar-name" id="topUsername">—</span>
+      <span class="topbar-role" id="topRole">—</span>
+      <button class="btn-logout" id="btnLogout" type="button">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="inspection" id="tabInspection">📋 Inspection</button>
+    <button class="tab" data-tab="team" id="tabTeam">👥 Team</button>
+    <button class="tab" data-tab="log" id="tabLog">📜 Activity Log</button>
+    <button class="tab" data-tab="dashboard" id="tabDashboard">📊 Dashboard</button>
+  </div>
+
+  <!-- INSPECTION TAB -->
+  <div class="content" id="tab-inspection">
+    <div class="section-toggle">
+      <button class="sec-btn active" id="secSnag">📋 Snag Check</button>
+      <button class="sec-btn" id="secAsset">📦 Asset Check</button>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-body">
+        <div class="flat-selector">
+          <div class="form-group">
+            <label>Tower</label>
+            <select id="selTower"><option value="">Select Tower</option></select>
+          </div>
+          <div class="form-group">
+            <label>Floor</label>
+            <select id="selFloor"><option value="">Select Floor</option></select>
+          </div>
+          <div class="form-group">
+            <label>Flat No.</label>
+            <select id="selFlat"><option value="">Select Flat</option></select>
+          </div>
+        </div>
+        <div class="flat-meta hidden" id="flatMeta">
+          <div class="flat-meta-item"><span class="lbl">Tower</span><span class="val" id="metaTower">—</span></div>
+          <div class="flat-meta-item"><span class="lbl">Floor</span><span class="val" id="metaFloor">—</span></div>
+          <div class="flat-meta-item"><span class="lbl">Flat No.</span><span class="val" id="metaFlatNo">—</span></div>
+          <div class="flat-meta-item"><span class="lbl">Type</span><span class="val" id="metaType">—</span></div>
+          <div class="flat-meta-item ml-auto" style="flex:1;min-width:100px">
+            <span class="lbl">Completion</span>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+              <div class="progress-wrap"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+              <span class="val" id="metaProgress" style="white-space:nowrap">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-bar" id="statsBar" style="display:none">
+      <div class="stat-chip total">📊 <span class="num" id="stTotal">0</span> Total</div>
+      <div class="stat-chip pend">🔴 <span class="num" id="stPend">0</span> Pending</div>
+      <div class="stat-chip prog">🔵 <span class="num" id="stProg">0</span> In Progress</div>
+      <div class="stat-chip done">🟢 <span class="num" id="stDone">0</span> Done</div>
+    </div>
+
+    <div class="round-toggles" id="roundToggles" style="display:none">
+      <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Columns:</span>
+      <button class="round-toggle r1s active" data-col="r1s" id="tog-r1s">🔵 R1 Snag</button>
+      <button class="round-toggle r1d active" data-col="r1d" id="tog-r1d">🟢 R1 De-Snag</button>
+      <button class="round-toggle r2s active" data-col="r2s" id="tog-r2s">🟣 R2 Snag</button>
+      <button class="round-toggle r2d active" data-col="r2d" id="tog-r2d">🟠 R2 De-Snag</button>
+      <button class="btn-teal btn-sm" id="btnExcelDownload" style="margin-left:auto;display:flex;align-items:center;gap:5px;padding:6px 14px">⬇️ Excel</button>
+    </div>
+
+    <div id="snagTableWrap">
+      <div class="empty"><span class="empty-icon">🏠</span><div class="empty-txt">Select a flat to begin inspection</div></div>
+    </div>
+  </div>
+
+  <!-- TEAM TAB -->
+  <div class="content hidden" id="tab-team">
+    <div class="section-header">
+      <h2>Team Members</h2>
+      <button class="btn-navy btn-sm" id="btnAddTeam" style="display:none">+ Add Member</button>
+    </div>
+    <div id="teamContent"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+  </div>
+
+  <!-- LOG TAB -->
+  <div class="content hidden" id="tab-log">
+    <div class="section-header">
+      <h2>Activity Log</h2>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <select id="logFlatFilter" style="width:160px"><option value="">All Flats</option></select>
+        <select id="logSecFilter" style="width:115px">
+          <option value="">All Sections</option>
+          <option value="snag">Snag</option>
+          <option value="asset">Asset</option>
+        </select>
+        <button class="btn-teal btn-sm" id="btnRefreshLog">🔄 Refresh</button>
+      </div>
+    </div>
+    <div class="card"><div id="logContent"><div class="loading"><div class="spinner"></div>Loading...</div></div></div>
+  </div>
+  <!-- DASHBOARD TAB -->
+  <div class="content hidden" id="tab-dashboard">
+
+    <!-- Filter Bar -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-body">
+        <div class="db-filter" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+          <div class="form-group" style="margin:0;min-width:130px;flex:1">
+            <label>Tower</label>
+            <select id="dbTower"></select>
+          </div>
+          <div class="form-group" style="margin:0;min-width:130px;flex:1">
+            <label>Floor</label>
+            <select id="dbFloor"><option value="">All Floors</option></select>
+          </div>
+          <div class="form-group" style="margin:0;min-width:130px;flex:1">
+            <label>Flat No.</label>
+            <select id="dbFlat"><option value="">All Flats</option></select>
+          </div>
+          <div class="form-group" style="margin:0;min-width:110px">
+            <label>Section</label>
+            <select id="dbSection">
+              <option value="snag">Snag Check</option>
+              <option value="asset">Asset Check</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;min-width:130px">
+            <label>Report Type</label>
+            <select id="dbReportType">
+              <option value="flat">Flat Wise</option>
+              <option value="tower">Tower Consolidated</option>
+            </select>
+          </div>
+          <div style="align-self:flex-end">
+            <button class="btn-accent btn-sm" id="btnGenDashboard" style="padding:10px 20px">Generate Report</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report 1: Checking Area wise count -->
+    <div id="dbReport1" class="hidden">
+      <h2 style="margin-bottom:12px;font-size:16px">📊 Checking Area — Status Summary</h2>
+      <div class="card" style="margin-bottom:20px">
+        <div style="overflow-x:auto">
+          <table id="dbAreaTable" style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead id="dbAreaHead"></thead>
+            <tbody id="dbAreaBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report 2: Flat wise responsible person -->
+    <div id="dbReport2" class="hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <h2 style="font-size:16px">👤 Responsible Person — Flat Report</h2>
+        <button class="btn-navy btn-sm" id="btnDownloadPDF" style="display:flex;align-items:center;gap:6px">
+          ⬇️ Download PDF
+        </button>
+      </div>
+      <div class="card" id="dbRespCard">
+        <div style="overflow-x:auto">
+          <table id="dbRespTable" style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead id="dbRespHead"></thead>
+            <tbody id="dbRespBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div id="dbEmpty">
+      <div class="empty"><span class="empty-icon">📊</span><div class="empty-txt">Select filters and click Generate Report</div></div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- MODALS -->
+
+<!-- Team -->
+<div class="modal-bg" id="teamModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="teamModalTitle">Add Team Member</h3>
+      <button class="btn-close" id="btnCloseTeam">×</button>
+    </div>
+    <div class="form-group"><label>Username</label><input type="text" id="tmUsername" placeholder="e.g. aritra.snag" autocomplete="off"></div>
+    <div class="form-group">
+      <label>PIN <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(blank = keep existing)</span></label>
+      <div class="pin-wrap">
+        <input type="password" id="tmPin" placeholder="Set a PIN" inputmode="numeric">
+        <button class="pin-eye" id="btnModalPinEye" type="button">👁</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Role</label>
+      <select id="tmRole"><option>Admin</option><option>Snag Team</option><option>De-Snag Team</option><option>Viewer</option></select>
+    </div>
+    <input type="hidden" id="tmUserId">
+    <div class="modal-footer">
+      <button class="btn-cancel btn-sm" id="btnCancelTeam">Cancel</button>
+      <button class="btn-save btn-sm" id="btnSaveTeam">Save Member</button>
+    </div>
+  </div>
+</div>
+
+<!-- Photo Viewer Modal -->
+<div class="modal-bg" id="photoModal">
+  <div class="modal" style="max-width:660px;padding:16px">
+    <div class="modal-header" style="margin-bottom:10px">
+      <h3 id="photoModalTitle" style="font-size:14px">Photo</h3>
+      <button class="btn-close" id="btnClosePhoto">×</button>
+    </div>
+    <!-- Image container -->
+    <div style="background:#0f172a;border-radius:8px;display:flex;align-items:center;justify-content:center;min-height:200px;max-height:65vh;overflow:hidden;position:relative">
+      <img id="photoModalImg" style="max-width:100%;max-height:65vh;object-fit:contain;display:block" src="" alt="Photo"
+        onerror="this.style.display='none';document.getElementById('photoModalErr').style.display='flex'">
+      <div id="photoModalErr" style="display:none;flex-direction:column;align-items:center;gap:8px;color:#94a3b8;padding:32px">
+        <span style="font-size:36px">📷</span>
+        <span style="font-size:13px">Image could not load</span>
+        <a id="photoModalErrLink" href="#" target="_blank" style="color:#67e8f9;font-size:12px">Open in Drive instead →</a>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;flex-wrap:wrap;gap:8px">
+      <span id="photoModalMeta" style="font-size:11px;color:var(--muted)"></span>
+      <div style="display:flex;gap:8px">
+        <a id="photoModalLink" href="#" target="_blank" class="btn-accent btn-sm" style="text-decoration:none;padding:6px 14px">🔗 Open in Drive</a>
+        <button class="btn-cancel btn-sm" id="btnCancelPhoto">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Photo Source Choice Modal -->
+<div class="modal-bg" id="photoChoiceModal">
+  <div class="modal" style="max-width:320px">
+    <div class="modal-header">
+      <h3>Add Photo</h3>
+      <button class="btn-close" id="btnClosePhotoChoice">×</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px">
+      <button id="btnChooseGallery" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:10px;border:2px solid var(--border);background:#fff;font-size:14px;font-weight:700;cursor:pointer;text-align:left;width:100%;transition:all .18s;-webkit-tap-highlight-color:transparent">
+        <span style="font-size:28px">🖼️</span>
+        <span style="display:flex;flex-direction:column;gap:3px">
+          <span style="color:var(--navy)">Choose from Gallery</span>
+          <span style="font-size:11px;color:var(--muted);font-weight:500">Pick an existing photo from device</span>
+        </span>
+      </button>
+      <button id="btnChooseCamera" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:10px;border:2px solid var(--border);background:#fff;font-size:14px;font-weight:700;cursor:pointer;text-align:left;width:100%;transition:all .18s;-webkit-tap-highlight-color:transparent">
+        <span style="font-size:28px">📷</span>
+        <span style="display:flex;flex-direction:column;gap:3px">
+          <span style="color:var(--navy)">Take a Photo</span>
+          <span style="font-size:11px;color:var(--muted);font-weight:500">Open camera and capture now</span>
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Cell Full Content / Edit Modal -->
+<div class="modal-bg" id="cellModal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <h3 id="cellModalTitle" style="font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px"></h3>
+      <button class="btn-close" id="btnCloseCellModal">×</button>
+    </div>
+    <!-- Read-only view -->
+    <div id="cellModalBody" style="font-size:15px;line-height:1.8;color:var(--text);padding:4px 0 8px;word-break:break-word;white-space:pre-wrap;display:none"></div>
+    <!-- Edit view -->
+    <textarea id="cellModalInput" style="width:100%;min-height:120px;font-size:15px;line-height:1.8;padding:12px;border:1.5px solid var(--border);border-radius:8px;resize:vertical;font-family:inherit;display:none"></textarea>
+    <div id="cellModalActions" style="display:none;justify-content:flex-end;gap:8px;margin-top:12px">
+      <button class="btn-cancel btn-sm" id="btnCancelCellEdit">Cancel</button>
+      <button class="btn-accent btn-sm" id="btnSaveCellEdit" style="padding:8px 20px">✅ Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<!-- Fix 1: two separate file inputs, no modal popup -->
+<!-- Single file input: on mobile shows gallery+camera options natively -->
+<input type="file" id="photoFileGallery" accept="image/*,video/*" style="display:none">
+<input type="file" id="photoFileCamera" accept="image/*" capture="environment" style="display:none">
+<script>
+// STATE
+let SESSION=null,FLATS=[],SNAGS=[],ASSETS={},INSPECTIONS={},A_INSPECTIONS={},PHOTOS={},TEAM=[];
+let ACTIVE_FLAT=null,ACTIVE_SECTION='snag';
+let ACTIVE_COL={r1s:true,r1d:true,r2s:true,r2d:true};
+let UPLOAD_CTX=null;
+let OVERRIDES={}; // flatId -> [{refId,section,field,value}]
+
+// SESSION PERSISTENCE
+function saveSession(s){try{localStorage.setItem('snagSession',JSON.stringify(s));}catch(e){}}
+function loadSession(){try{return JSON.parse(localStorage.getItem('snagSession'));}catch(e){return null;}}
+function clearSession(){
+  try{
+    localStorage.removeItem('snagSession');
+    localStorage.removeItem('snagState');
+  }catch(e){}
+}
+
+// Save/restore flat selection and active section
+function saveState(){
+  try{
+    const state={
+      tower   : document.getElementById('selTower').value,
+      floor   : document.getElementById('selFloor').value,
+      flatId  : document.getElementById('selFlat').value,
+      section : ACTIVE_SECTION,
+      tab     : document.querySelector('.tab.active')?document.querySelector('.tab.active').dataset.tab:'inspection'
+    };
+    localStorage.setItem('snagState',JSON.stringify(state));
+  }catch(e){}
+}
+
+function restoreState(){
+  try{
+    const state=JSON.parse(localStorage.getItem('snagState'));
+    if(!state) return;
+    // Restore tab
+    if(state.tab) switchTab(state.tab);
+    // Restore section
+    if(state.section) switchSection(state.section);
+    // Restore flat selection after FLATS are loaded
+    if(state.tower || state.flatId){
+      _pendingState=state;
+    }
+  }catch(e){}
+}
+let _pendingState=null;
+
+function applyPendingState(){
+  if(!_pendingState||!FLATS.length) return;
+  const st=_pendingState; _pendingState=null;
+  // Set tower
+  if(st.tower){
+    const tw=document.getElementById('selTower');
+    tw.value=st.tower;
+    onTowerChange();
+  }
+  // Set floor
+  setTimeout(()=>{
+    if(st.floor){
+      const fl=document.getElementById('selFloor');
+      fl.value=st.floor;
+      onFloorChange();
+    }
+    // Set flat
+    setTimeout(()=>{
+      if(st.flatId){
+        const fs=document.getElementById('selFlat');
+        fs.value=st.flatId;
+        if(fs.value) onFlatChange();
+      }
+    },100);
+  },100);
+}
+
+// UTILS
+function showToast(msg,type='info'){
+  const t=document.getElementById('toast');
+  t.innerHTML=msg;t.className='toast show '+type;
+  clearTimeout(t._t);t._t=setTimeout(()=>t.className='toast',3000);
+}
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+function togglePin(){const e=document.getElementById('loginPin');e.type=e.type==='password'?'text':'password';}
+function toggleModalPin(){const e=document.getElementById('tmPin');e.type=e.type==='password'?'text':'password';}
+
+// google.script.run — works inside GAS iframe with org auth
+function call(fn, args, cb) {
+  var runner = google.script.run
+    .withSuccessHandler(function(r) {
+      if (!r) { console.warn(fn+': null response'); cb([]); return; }
+      if (r.status === 'error') { console.warn(fn+' error: '+r.msg); cb([]); return; }
+      var data = (r.data !== undefined && r.data !== null) ? r.data : r;
+      cb(data);
+    })
+    .withFailureHandler(function(e) {
+      console.error(fn, e.message);
+      cb([]); // always call cb so counters don't get stuck
+    });
+  // google.script.run does not support .apply() — call by spreading args
+  switch(args.length) {
+    case 0: runner[fn](); break;
+    case 1: runner[fn](args[0]); break;
+    case 2: runner[fn](args[0],args[1]); break;
+    case 3: runner[fn](args[0],args[1],args[2]); break;
+    case 4: runner[fn](args[0],args[1],args[2],args[3]); break;
+    case 5: runner[fn](args[0],args[1],args[2],args[3],args[4]); break;
+    case 6: runner[fn](args[0],args[1],args[2],args[3],args[4],args[5]); break;
+    case 7: runner[fn](args[0],args[1],args[2],args[3],args[4],args[5],args[6]); break;
+    case 8: runner[fn](args[0],args[1],args[2],args[3],args[4],args[5],args[6],args[7]); break;
+    case 9: runner[fn](args[0],args[1],args[2],args[3],args[4],args[5],args[6],args[7],args[8]); break;
+    default: runner[fn].apply(runner, args);
+  }
+}
+
+// FIX 6: load usernames for dropdown properly
+function loadUsernames(){
+  // Usernames are injected server-side at page load — nothing to do here.
+  // Called after team changes to refresh, but since we use server-side injection
+  // the user just needs to reload the page to see new members on login.
+  // For in-app team tab, the dropdown isn't shown so this is a no-op.
+}
+
+// LOGIN
+document.getElementById('loginPin').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+function doLogin(){
+  var u=document.getElementById('loginUser').value.trim();
+  var p=document.getElementById('loginPin').value.trim();
+  var err=document.getElementById('loginErr');
+  if(!u){err.textContent='Please select a username';return;}
+  if(!p){err.textContent='Please enter your PIN';return;}
+  err.textContent='Signing in...';
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (!r || r.status === 'error') { err.textContent = (r && r.msg) || 'Login failed'; return; }
+      err.textContent = '';
+      startApp(r.data);
+    })
+    .withFailureHandler(function(e) { err.textContent = 'Error: ' + e.message; })
+    .login(u, p);
+}
+
+function startApp(s){
+  SESSION=s;saveSession(SESSION);
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('topUsername').textContent=SESSION.username;
+  document.getElementById('topRole').textContent=SESSION.role;
+  initApp();
+}
+
+function doLogout(){
+  clearSession();SESSION=null;FLATS=[];SNAGS=[];ASSETS={};ACTIVE_FLAT=null;
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginPin').value='';
+  loadUsernames();
+}
+
+window.addEventListener('load',function(){
+  // Usernames already in DOM (injected server-side)
+  // Just restore session if exists
+  var saved=loadSession();
+  if(saved&&saved.username&&saved.role){
+    startApp(saved);
+    restoreState();
+  }
+});
+
+function initApp(){
+  if(isAdmin()) document.getElementById('btnAddTeam').style.display='';
+  loadTeam();
+  setTimeout(function(){loadLog();}, 2000);
+
+  // Load SNAGS first, then load flats (so SNAGS is ready when flat is selected)
+  google.script.run
+    .withSuccessHandler(function(r){
+      var d=(r&&r.status==='ok'&&r.data!==undefined)?r.data:(Array.isArray(r)?r:[]);
+      SNAGS = Array.isArray(d) ? d : [];
+      console.log('[initApp] SNAGS loaded:', SNAGS.length);
+      // Now load flats
+      google.script.run
+        .withSuccessHandler(function(r2){
+          var d2=(r2&&r2.status==='ok'&&r2.data!==undefined)?r2.data:(Array.isArray(r2)?r2:[]);
+          FLATS = Array.isArray(d2) ? d2 : [];
+          console.log('[initApp] FLATS loaded:', FLATS.length);
+          buildTowerSelect();
+          buildLogFlatFilter();
+          applyPendingState();
+        })
+        .withFailureHandler(function(e){ console.error('getFlats', e); FLATS=[]; })
+        .getFlats();
+    })
+    .withFailureHandler(function(e){ console.error('getSnagMaster', e); SNAGS=[]; })
+    .getSnagMaster();
+}
+
+function isAdmin() {return SESSION&&SESSION.role==='Admin';}
+function isSnag()  {return SESSION&&(SESSION.role==='Admin'||SESSION.role==='Snag Team');}
+function isDeSnag(){return SESSION&&(SESSION.role==='Admin'||SESSION.role==='De-Snag Team');}
+function canEdit(field){
+  if(isAdmin()) return true;
+  if(field==='status') return isSnag() || isDeSnag();
+  if(field==='r1SnagRemark' || field==='r2SnagRemark') return isSnag();
+  if(field==='r1DeSnagRemark' || field==='r2DeSnagRemark') return isDeSnag();
+  return false;
+}
+
+function canUploadPhoto(round){
+  if(isAdmin())return true;
+  return(round==='R1S'||round==='R2S')?isSnag():isDeSnag();
+}
+
+// TABS
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  ['inspection','team','log','dashboard'].forEach(n=>document.getElementById('tab-'+n).classList.toggle('hidden',n!==name));
+  if(name==='log') loadLog();
+  if(name==='dashboard') initDashboardFilters();
+  saveState();
+}
+
+// SECTION
+function switchSection(sec){
+  ACTIVE_SECTION=sec;
+  document.getElementById('secSnag').classList.toggle('active',sec==='snag');
+  document.getElementById('secAsset').classList.toggle('active',sec==='asset');
+  if(ACTIVE_FLAT)renderCurrentTable();
+  saveState();
+}
+
+// FLATS
+function loadFlatsAndSnags(){
+  // Called from dashboard to refresh — reload both
+  google.script.run
+    .withSuccessHandler(function(r){
+      var d=(r&&r.status==='ok'&&r.data!==undefined)?r.data:(Array.isArray(r)?r:[]);
+      FLATS=Array.isArray(d)?d:[];
+      buildTowerSelect();
+      buildLogFlatFilter();
+    })
+    .withFailureHandler(function(e){console.error('getFlats',e);})
+    .getFlats();
+}
+
+function buildTowerSelect(){
+  const towers=[...new Set(FLATS.map(f=>f.tower))].sort();
+  document.getElementById('selTower').innerHTML='<option value="">Select Tower</option>'+towers.map(t=>`<option>${t}</option>`).join('');
+  document.getElementById('selFloor').innerHTML='<option value="">Select Floor</option>';
+  document.getElementById('selFlat').innerHTML='<option value="">Select Flat</option>';
+}
+
+function onTowerChange(){
+  const tower=document.getElementById('selTower').value;
+  const floors=[...new Set(FLATS.filter(f=>f.tower===tower).map(f=>Number(f.floor)))].sort((a,b)=>a-b);
+  document.getElementById('selFloor').innerHTML='<option value="">Select Floor</option>'+floors.map(f=>`<option>${f}</option>`).join('');
+  document.getElementById('selFlat').innerHTML='<option value="">Select Flat</option>';
+  document.getElementById('flatMeta').classList.add('hidden');
+  resetTable();
+}
+
+function onFloorChange(){
+  const tower=document.getElementById('selTower').value;
+  const floor=document.getElementById('selFloor').value;
+  const list=FLATS.filter(f=>f.tower===tower&&String(f.floor)===String(floor)).sort((a,b)=>a.flatNo.localeCompare(b.flatNo));
+  document.getElementById('selFlat').innerHTML='<option value="">Select Flat</option>'+list.map(f=>`<option value="${f.flatId}">${f.flatNo}</option>`).join('');
+}
+
+function onFlatChange(){
+  const flatId=document.getElementById('selFlat').value;
+  if(!flatId)return;
+  ACTIVE_FLAT=FLATS.find(f=>f.flatId===flatId);
+  if(!ACTIVE_FLAT)return;
+  saveState(); // persist selection
+  document.getElementById('flatMeta').classList.remove('hidden');
+  document.getElementById('statsBar').style.display='flex';
+  document.getElementById('roundToggles').style.display='flex';
+  document.getElementById('metaTower').textContent=ACTIVE_FLAT.tower;
+  document.getElementById('metaFloor').textContent='Floor '+ACTIVE_FLAT.floor;
+  document.getElementById('metaFlatNo').textContent=ACTIVE_FLAT.flatNo;
+  document.getElementById('metaType').textContent=ACTIVE_FLAT.flatType;
+  document.getElementById('snagTableWrap').innerHTML='<div class="loading"><div class="spinner"></div>Loading inspection data...</div>';
+  loadFlatData(flatId);
+}
+
+function loadFlatData(flatId){
+  var ft = ACTIVE_FLAT.flatType;
+  var wrap = document.getElementById('snagTableWrap');
+
+  function step(msg){ wrap.innerHTML='<div class="loading"><div class="spinner"></div>'+msg+'</div>'; }
+
+  step('Loading inspections...');
+  google.script.run
+    .withSuccessHandler(function(r){
+      var d=(r&&r.status==='ok'&&r.data!==undefined)?r.data:(Array.isArray(r)?r:[]);
+      INSPECTIONS[flatId]=d||[];
+      step('Loading asset inspections... ('+INSPECTIONS[flatId].length+' snag rows)');
+
+      google.script.run
+        .withSuccessHandler(function(r2){
+          var d2=(r2&&r2.status==='ok'&&r2.data!==undefined)?r2.data:(Array.isArray(r2)?r2:[]);
+          A_INSPECTIONS[flatId]=d2||[];
+          step('Loading photos... ('+A_INSPECTIONS[flatId].length+' asset rows)');
+
+          google.script.run
+            .withSuccessHandler(function(r3){
+              var d3=(r3&&r3.status==='ok'&&r3.data!==undefined)?r3.data:(Array.isArray(r3)?r3:[]);
+              PHOTOS[flatId]=d3||[];
+              step('Rendering... ('+PHOTOS[flatId].length+' photos)');
+              OVERRIDES[flatId]=OVERRIDES[flatId]||[];
+              renderCurrentTable();
+              // Load overrides silently after render
+              google.script.run
+                .withSuccessHandler(function(r4){
+                  var d4=(r4&&r4.status==='ok'&&r4.data!==undefined)?r4.data:(Array.isArray(r4)?r4:[]);
+                  OVERRIDES[flatId]=d4||[];
+                })
+                .withFailureHandler(function(){OVERRIDES[flatId]=[];})
+                .getOverrides(flatId);
+            })
+            .withFailureHandler(function(e){
+              step('Photos failed: '+e.message+'. Rendering anyway...');
+              PHOTOS[flatId]=[];
+              renderCurrentTable();
+            })
+            .getPhotos(flatId, null, null);
+        })
+        .withFailureHandler(function(e){
+          step('Asset insp failed: '+e.message);
+          A_INSPECTIONS[flatId]=[];
+          google.script.run
+            .withSuccessHandler(function(r3){
+              var d3=(r3&&r3.status==='ok'&&r3.data!==undefined)?r3.data:(Array.isArray(r3)?r3:[]);
+              PHOTOS[flatId]=d3||[];
+              OVERRIDES[flatId]=[];
+              renderCurrentTable();
+            })
+            .withFailureHandler(function(){PHOTOS[flatId]=[];OVERRIDES[flatId]=[];renderCurrentTable();})
+            .getPhotos(flatId, null, null);
+        })
+        .getAssetInspections(flatId);
+    })
+    .withFailureHandler(function(e){
+      step('Inspections failed: '+e.message+'. Trying anyway...');
+      INSPECTIONS[flatId]=[];A_INSPECTIONS[flatId]=[];PHOTOS[flatId]=[];OVERRIDES[flatId]=[];
+      renderCurrentTable();
+    })
+    .getInspections(flatId);
+
+  // Load asset master in background
+  if(!ASSETS[ft]){
+    google.script.run
+      .withSuccessHandler(function(r){
+        var d=(r&&r.status==='ok'&&r.data!==undefined)?r.data:(Array.isArray(r)?r:[]);
+        ASSETS[ft]=d||[];
+      })
+      .withFailureHandler(function(){ASSETS[ft]=[];})
+      .getAssetMaster(ft);
+  }
+}
+
+
+function resetTable(){
+  document.getElementById('snagTableWrap').innerHTML='<div class="empty"><span class="empty-icon">🏠</span><div class="empty-txt">Select a flat to begin inspection</div></div>';
+  document.getElementById('statsBar').style.display='none';
+  document.getElementById('roundToggles').style.display='none';
+}
+
+function renderCurrentTable(){
+  if(ACTIVE_SECTION==='snag')renderSnagTable();
+  else renderAssetTable();
+}
+
+// SNAG TABLE
+function renderSnagTable(){
+  const flatId=ACTIVE_FLAT.flatId;
+  const im={};(INSPECTIONS[flatId]||[]).forEach(r=>im[r.snagId]=r);
+  // FIX 2: filter by section from PHOTOS cache
+  const pm={};(PHOTOS[flatId]||[]).filter(p=>p.section==='snag'||!p.section).forEach(p=>{
+    if(!pm[p.refId])pm[p.refId]=[];pm[p.refId].push(p);
+  });
+  if(!SNAGS.length){
+    // SNAGS might still be loading — retry once after 2 seconds
+    document.getElementById('snagTableWrap').innerHTML='<div class="loading"><div class="spinner"></div>Loading snag master data...</div>';
+    setTimeout(function(){
+      if(SNAGS.length){ renderSnagTable(); }
+      else {
+        // Force reload snag master
+        google.script.run
+          .withSuccessHandler(function(r){
+            var d=(r&&r.status==='ok'&&r.data!==undefined)?r.data:(Array.isArray(r)?r:[]);
+            SNAGS=d||[];
+            if(SNAGS.length) renderSnagTable();
+            else document.getElementById('snagTableWrap').innerHTML='<div class="empty"><span class="empty-icon">⚠️</span><div class="empty-txt">No snag data found. Run setupSheets() in Apps Script.</div></div>';
+          })
+          .withFailureHandler(function(e){
+            document.getElementById('snagTableWrap').innerHTML='<div class="empty"><span class="empty-icon">⚠️</span><div class="empty-txt">Error loading snag data: '+e.message+'</div></div>';
+          })
+          .getSnagMaster();
+      }
+    }, 2000);
+    return;
+  }
+
+  let t=0,p=0,d=0,i=0;
+  SNAGS.forEach(s=>{t++;const st=(im[s.snagId]||{}).status||'Pending';if(st==='Pending')p++;else if(st==='Done')d++;else if(st==='InProgress')i++;else p++;});
+  updateStats(t,p,i,d);
+
+  const grouped={};SNAGS.forEach(s=>{if(!grouped[s.location])grouped[s.location]=[];grouped[s.location].push(s);});
+  const cv=col=>ACTIVE_COL[col]?'':'hidden';
+
+  // FIX 4: include Resp Contractor, Checking Area, Resp Name columns (admin editable)
+  let html=`<div class="snag-table-wrap"><table class="snag-table">
+  <thead><tr>
+    <th class="sticky-loc">Location</th>
+    <th class="sticky-pt">Snag Point</th>
+    <th>Resp. Contractor</th>
+    <th>Checking Area</th>
+    <th>Resp. Name</th>
+    <th>Status</th>
+    <th class="col-r1s ${cv('r1s')}">🔵 R1 Snag Remarks</th>
+    <th class="col-r1s ${cv('r1s')}">🔵 Photos</th>
+    <th class="col-r1d ${cv('r1d')}">🟢 R1 De-Snag Remarks</th>
+    <th class="col-r1d ${cv('r1d')}">🟢 Photos</th>
+    <th class="col-r2s ${cv('r2s')}">🟣 R2 Snag Remarks</th>
+    <th class="col-r2s ${cv('r2s')}">🟣 Photos</th>
+    <th class="col-r2d ${cv('r2d')}">🟠 R2 De-Snag Remarks</th>
+    <th class="col-r2d ${cv('r2d')}">🟠 Photos</th>
+  </tr></thead><tbody>`;
+
+  Object.keys(grouped).forEach(loc=>{
+    html+=`<tr class="loc-header"><td colspan="14" style="padding-left:14px">📍 ${loc}</td></tr>`;
+    grouped[loc].forEach(s=>{
+      const insp=im[s.snagId]||{};const status=insp.status||'Pending';const photos=pm[s.snagId]||[];
+      html+=`<tr>
+        <td class="sticky-loc txt-cell" onclick="showCell('Location',this.textContent.trim())">${s.location}</td>
+        <td class="sticky-pt txt-cell" title="${s.snagPoint}" onclick="showCell('Snag Point',this.textContent.trim())">${s.snagPoint}</td>
+        <td class="master-cell">${mkMasterInput('respContractor',s.respContractor,s.snagId,'snag',flatId)}</td>
+        <td class="master-cell">${mkMasterInput('checkingArea',s.checkingArea,s.snagId,'snag',flatId)}</td>
+        <td class="master-cell">${mkMasterInput('respName',s.respName,s.snagId,'snag',flatId)}</td>
+        <td>${mkStatus(status,'snag',flatId,s.snagId)}</td>
+        ${mkRemark('r1SnagRemark',insp.r1SnagRemark,canEdit('r1SnagRemark'),'r1s','snag',flatId,s.snagId)}
+        ${mkPhotos(photos,'R1S','r1s',flatId,s.snagId,'snag')}
+        ${mkRemark('r1DeSnagRemark',insp.r1DeSnagRemark,canEdit('r1DeSnagRemark'),'r1d','snag',flatId,s.snagId)}
+        ${mkPhotos(photos,'R1D','r1d',flatId,s.snagId,'snag')}
+        ${mkRemark('r2SnagRemark',insp.r2SnagRemark,canEdit('r2SnagRemark'),'r2s','snag',flatId,s.snagId)}
+        ${mkPhotos(photos,'R2S','r2s',flatId,s.snagId,'snag')}
+        ${mkRemark('r2DeSnagRemark',insp.r2DeSnagRemark,canEdit('r2DeSnagRemark'),'r2d','snag',flatId,s.snagId)}
+        ${mkPhotos(photos,'R2D','r2d',flatId,s.snagId,'snag')}
+      </tr>`;
+    });
+  });
+  html+=`</tbody></table></div>`;
+  document.getElementById('snagTableWrap').innerHTML=html;
+}
+
+// ASSET TABLE
+function renderAssetTable(){
+  const flatId=ACTIVE_FLAT.flatId;
+  const ft=ACTIVE_FLAT.flatType;
+  const aList=ASSETS[ft];
+  if(!aList){
+    call('getAssetMaster',[ft],a=>{ASSETS[ft]=a||[];renderAssetTable();});
+    document.getElementById('snagTableWrap').innerHTML='<div class="loading"><div class="spinner"></div>Loading asset data...</div>';
+    return;
+  }
+  if(!aList.length){document.getElementById('snagTableWrap').innerHTML=`<div class="empty"><span class="empty-icon">📦</span><div class="empty-txt">No asset data for type: ${ft}</div></div>`;return;}
+
+  const im={};(A_INSPECTIONS[flatId]||[]).forEach(r=>im[r.assetId]=r);
+  const pm={};(PHOTOS[flatId]||[]).filter(p=>p.section==='asset').forEach(p=>{
+    if(!pm[p.refId])pm[p.refId]=[];pm[p.refId].push(p);
+  });
+
+  let t=0,p=0,d=0,i=0;
+  aList.forEach(a=>{t++;const st=(im[a.assetId]||{}).status||'Pending';if(st==='Pending')p++;else if(st==='Done')d++;else if(st==='InProgress')i++;else p++;});
+  updateStats(t,p,i,d);
+
+  const grouped={};aList.forEach(a=>{if(!grouped[a.location])grouped[a.location]=[];grouped[a.location].push(a);});
+  const cv=col=>ACTIVE_COL[col]?'':'hidden';
+
+  let html=`<div class="snag-table-wrap"><table class="snag-table">
+  <thead><tr>
+    <th class="sticky-loc">Location</th>
+    <th class="sticky-pt">Asset Point</th>
+    <th>Qty</th>
+    <th>Resp. Person</th>
+    <th>Status</th>
+    <th class="col-r1s ${cv('r1s')}">🔵 R1 Snag Remarks</th>
+    <th class="col-r1s ${cv('r1s')}">🔵 Photos</th>
+    <th class="col-r1d ${cv('r1d')}">🟢 R1 De-Snag Remarks</th>
+    <th class="col-r1d ${cv('r1d')}">🟢 Photos</th>
+    <th class="col-r2s ${cv('r2s')}">🟣 R2 Snag Remarks</th>
+    <th class="col-r2s ${cv('r2s')}">🟣 Photos</th>
+    <th class="col-r2d ${cv('r2d')}">🟠 R2 De-Snag Remarks</th>
+    <th class="col-r2d ${cv('r2d')}">🟠 Photos</th>
+  </tr></thead><tbody>`;
+
+  Object.keys(grouped).forEach(loc=>{
+    html+=`<tr class="loc-header"><td colspan="13" style="padding-left:14px">📍 ${loc}</td></tr>`;
+    grouped[loc].forEach(a=>{
+      const insp=im[a.assetId]||{};const status=insp.status||'Pending';const photos=pm[a.assetId]||[];
+      html+=`<tr>
+        <td class="sticky-loc">${a.location}</td>
+        <td class="sticky-pt txt-cell" title="${a.assetPoint}" onclick="showCell('Asset Point',this.textContent.trim())">${a.assetPoint}</td>
+        <td>${mkQtyInput(a.assetId,a.numbers,flatId)}</td>
+        <td class="master-cell">${mkMasterInput('respPerson',a.respPerson,a.assetId,'asset',flatId)}</td>
+        <td>${mkStatus(status,'asset',flatId,a.assetId)}</td>
+        ${mkRemark('r1SnagRemark',insp.r1SnagRemark,canEdit('r1SnagRemark'),'r1s','asset',flatId,a.assetId)}
+        ${mkPhotos(photos,'R1S','r1s',flatId,a.assetId,'asset')}
+        ${mkRemark('r1DeSnagRemark',insp.r1DeSnagRemark,canEdit('r1DeSnagRemark'),'r1d','asset',flatId,a.assetId)}
+        ${mkPhotos(photos,'R1D','r1d',flatId,a.assetId,'asset')}
+        ${mkRemark('r2SnagRemark',insp.r2SnagRemark,canEdit('r2SnagRemark'),'r2s','asset',flatId,a.assetId)}
+        ${mkPhotos(photos,'R2S','r2s',flatId,a.assetId,'asset')}
+        ${mkRemark('r2DeSnagRemark',insp.r2DeSnagRemark,canEdit('r2DeSnagRemark'),'r2d','asset',flatId,a.assetId)}
+        ${mkPhotos(photos,'R2D','r2d',flatId,a.assetId,'asset')}
+      </tr>`;
+    });
+  });
+  html+=`</tbody></table></div>`;
+  document.getElementById('snagTableWrap').innerHTML=html;
+}
+
+// CELL BUILDERS
+function mkStatus(status,section,flatId,refId){
+  const opts=['Pending','InProgress','Done','NA'];
+  const fn=section==='snag'?'saveSnagField':'saveAssetField';
+  if(canEdit('status'))
+    return `<select class="status-sel status-${status}" onchange="${fn}('${flatId}','${refId}','status',this.value,this)">${opts.map(v=>`<option ${status===v?'selected':''}>${v}</option>`).join('')}</select>`;
+  return `<span class="status-sel status-${status}">${status}</span>`;
+}
+
+function mkRemark(field, val, editable, col, section, flatId, refId) {
+  var label = {
+    r1SnagRemark  :'R1 Snag Remark', r1DeSnagRemark:'R1 De-Snag Remark',
+    r2SnagRemark  :'R2 Snag Remark', r2DeSnagRemark:'R2 De-Snag Remark'
+  }[field] || field;
+  var display = val || '';
+  var preview = display.length > 35
+    ? display.substring(0,35)+'...'
+    : (display || (editable ? '<span style="color:var(--muted);font-style:italic">Tap to add...</span>' : '<span style="color:var(--muted)">—</span>'));
+
+  if (!editable) {
+    return '<td class="remark-cell col-'+col+'"'
+      +(display?' onclick="showCell(this.dataset.label,this.dataset.val)" data-label="'+label+'" data-val="'+display.replace(/"/g,'&quot;')+'"':'')+'>'
+      +'<div class="remark-ro">'+preview+'</div></td>';
+  }
+
+  var fn = section === 'snag' ? 'saveSnagField' : 'saveAssetField';
+  return '<td class="remark-cell col-'+col+'">'
+    +'<div class="remark-edit-wrap" title="'+display.replace(/"/g,'&quot;')+'"'
+    +' data-field="'+field+'" data-refid="'+refId+'"'
+    +' data-section="'+section+'" data-flatid="'+flatId+'"'
+    +' data-fn="'+fn+'" data-label="'+label+'"'
+    +' onclick="openRemarkEdit(this)">'
+    +preview
+    +'</div></td>';
+}
+
+function openRemarkEdit(el) {
+  var field   = el.getAttribute('data-field');
+  var refId   = el.getAttribute('data-refid');
+  var section = el.getAttribute('data-section');
+  var flatId  = el.getAttribute('data-flatid');
+  var fn      = el.getAttribute('data-fn');
+  var label   = el.getAttribute('data-label');
+  var current = el.title || '';
+  editCell(label, current, function(newVal) {
+    if (newVal === current) return;
+    // Call save function
+    window[fn](flatId, refId, field, newVal, null);
+    // Update display
+    var preview = newVal.length > 35
+      ? newVal.substring(0,35)+'...'
+      : (newVal || '<span style="color:var(--muted);font-style:italic">Tap to add...</span>');
+    el.innerHTML = preview;
+    el.title = newVal;
+  });
+}
+
+// FIX 4: master fields editable by Admin only, save to SnagMaster/AssetMaster sheet
+function mkMasterInput(field, masterVal, refId, section, flatId) {
+  var val  = getOverrideVal(flatId, refId, section, field, masterVal);
+  var safe = (val||'').replace(/"/g,'&quot;');
+  var label = {
+    respContractor : 'Resp. Contractor',
+    checkingArea   : 'Checking Area',
+    respName       : 'Resp. Name',
+    respPerson     : 'Resp. Person'
+  }[field] || field;
+  if (isAdmin()) {
+    // Admin — click opens editable modal
+    return '<div class="master-input-wrap" title="'+safe+'"'
+      +' data-refid="'+refId+'" data-field="'+field+'" data-label="'+label+'"'
+      +' data-section="'+section+'" data-flatid="'+flatId+'"'
+      +' onclick="openMasterEdit(this)">'
+      +(val||'<span style="color:var(--muted)">—</span>')
+      +'</div>';
+  }
+  // Other roles — click opens read-only view modal via data attributes
+  return '<div class="master-input-wrap readonly" title="'+safe+'"'
+    +' data-label="'+label+'" data-val="'+safe+'"'
+    +' onclick="showCell(this.dataset.label,this.dataset.val)">'
+    +(val||'<span style="color:var(--muted)">—</span>')
+    +'</div>';
+}
+
+function openMasterEdit(el) {
+  var refId   = el.getAttribute('data-refid');
+  var field   = el.getAttribute('data-field');
+  var section = el.getAttribute('data-section');
+  var flatId  = el.getAttribute('data-flatid');
+  var label   = el.getAttribute('data-label');
+  var current = el.textContent.trim() === '—' ? '' : el.textContent.trim();
+  editCell(label, current, function(newVal) {
+    newVal = newVal.trim();
+    if (newVal === current) return; // no change
+    saveMasterField(refId, field, section, flatId, newVal);
+    // Update display immediately
+    el.innerHTML = newVal || '<span style="color:var(--muted)">—</span>';
+    el.title = newVal;
+  });
+}
+
+
+function mkQtyInput(assetId,qty,flatId){
+  if(isAdmin())
+    return `<input class="qty-input" type="number" min="0" value="${qty||1}" onblur="saveAssetQty('${assetId}','${flatId}',this.value)">`;
+  return `<span class="num-badge">${qty||1}</span>`;
+}
+
+// FIX 1: separate gallery and camera triggers — no modal
+function mkPhotos(photos, round, col, flatId, refId, section) {
+  var rp = photos.filter(function(p) { return p.round === round; });
+  var thumbHtml = '';
+  for (var i = 0; i < rp.length; i++) {
+    var p   = rp[i];
+    var fid = p.fileId || '';
+    if (!fid) { var m = (p.thumbUrl||'').match(/id=([^&]+)/); if(m) fid=m[1]; }
+    if (!fid) { var m2 = (p.viewUrl||'').match(/\/d\/([^\/\?]+)/); if(m2) fid=m2[1]; }
+    var thumb = fid ? 'https://drive.google.com/thumbnail?id='+fid+'&sz=w200' : (p.thumbUrl||'');
+    var delBtn = '';
+    if (canUploadPhoto(round)) {
+      delBtn = '<button class="btn-del-photo"'
+        +' data-photoid="'+p.photoId+'"'
+        +' data-flatid="'+flatId+'"'
+        +' data-refid="'+refId+'"'
+        +' data-round="'+round+'"'
+        +' data-section="'+section+'"'
+        +' onclick="handleDelPhoto(this)" title="Delete">✕</button>';
+    }
+    thumbHtml += '<span class="photo-wrap">'
+      +'<img class="photo-thumb" src="'+thumb+'"'
+      +' data-viewurl="'+(p.viewUrl||'')+'"'
+      +' data-round="'+round+'"'
+      +' onclick="viewPhotoFromEl(this)" title="View photo"'
+      +' onerror="this.style.opacity=0.3">'
+      +delBtn+'</span>';
+  }
+  // Always show Add Photo button if can upload
+  var upBtn = '';
+  if (canUploadPhoto(round)) {
+    upBtn = '<button class="btn-photo btn-ph-upload"'
+      +' data-flatid="'+flatId+'"'
+      +' data-refid="'+refId+'"'
+      +' data-round="'+round+'"'
+      +' data-section="'+section+'"'
+      +' onclick="handleUploadBtn(this)">📷 '+(rp.length?'Add More':'Upload')+'</button>';
+  }
+  return '<td class="photo-cell col-'+col+'">'
+    +'<div class="photo-thumbs">'+thumbHtml+'</div>'
+    +(upBtn?'<div class="photo-btns">'+upBtn+'</div>':'')
+    +'</td>';
+}
+
+
+// SAVE FUNCTIONS
+function saveSnagField(flatId,snagId,field,value,el){
+  call('saveInspection',[{flatId,snagId,field,value,changedBy:SESSION.username}],()=>{
+    if(!INSPECTIONS[flatId])INSPECTIONS[flatId]=[];
+    let row=INSPECTIONS[flatId].find(r=>r.snagId===snagId);
+    if(!row){row={flatId,snagId,status:'Pending'};INSPECTIONS[flatId].push(row);}
+    row[field]=value;
+    if(field==='status'&&el&&el.tagName==='SELECT')el.className='status-sel status-'+value;
+    showToast('✅ Saved','success');refreshStats('snag',flatId);
+  });
+}
+
+function saveAssetField(flatId,assetId,field,value,el){
+  call('saveAssetInspection',[{flatId,assetId,field,value,changedBy:SESSION.username}],()=>{
+    if(!A_INSPECTIONS[flatId])A_INSPECTIONS[flatId]=[];
+    let row=A_INSPECTIONS[flatId].find(r=>r.assetId===assetId);
+    if(!row){row={flatId,assetId,status:'Pending'};A_INSPECTIONS[flatId].push(row);}
+    row[field]=value;
+    if(field==='status'&&el&&el.tagName==='SELECT')el.className='status-sel status-'+value;
+    showToast('✅ Saved','success');refreshStats('asset',flatId);
+  });
+}
+
+// Save master field as per-flat override (not universal)
+function onMasterBlur(el) {
+  saveMasterField(
+    el.getAttribute('data-refid'),
+    el.getAttribute('data-field'),
+    el.getAttribute('data-section'),
+    el.getAttribute('data-flatid'),
+    el.value
+  );
+}
+
+function saveMasterField(refId, field, section, flatId, value) {
+  call('saveOverride', [flatId, refId, section, field, value, SESSION.username], function() {
+    // Update local OVERRIDES cache
+    if (!OVERRIDES[flatId]) OVERRIDES[flatId] = [];
+    var existing = OVERRIDES[flatId].find(function(o) {
+      return o.refId === refId && o.section === section && o.field === field;
+    });
+    if (existing) {
+      existing.value = value;
+    } else {
+      OVERRIDES[flatId].push({ refId: refId, section: section, field: field, value: value });
+    }
+    showToast('✅ Saved for this flat', 'success');
+  });
+}
+
+// Get override value for a field (falls back to master value)
+function getOverrideVal(flatId, refId, section, field, masterVal) {
+  var ov = (OVERRIDES[flatId] || []).find(function(o) {
+    return o.refId === refId && o.section === section && o.field === field;
+  });
+  return ov ? ov.value : (masterVal || '');
+}
+
+// FIX 4: save QTY for asset
+function saveAssetQty(assetId,flatId,value){
+  call('updateAssetMaster',[assetId,'numbers',Number(value),SESSION.username,flatId],()=>{
+    const ft=ACTIVE_FLAT.flatType;
+    const a=(ASSETS[ft]||[]).find(a=>a.assetId===assetId);
+    if(a)a.numbers=Number(value);
+    showToast('✅ Qty updated','success');
+  });
+}
+
+// STATS
+function updateStats(total,pend,prog,done){
+  document.getElementById('stTotal').textContent=total;
+  document.getElementById('stPend').textContent=pend;
+  document.getElementById('stProg').textContent=prog;
+  document.getElementById('stDone').textContent=done;
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('metaProgress').textContent=pct+'% Done';
+  document.getElementById('progressFill').style.width=pct+'%';
+}
+
+function refreshStats(section,flatId){
+  if(section==='snag'){
+    const im={};(INSPECTIONS[flatId]||[]).forEach(r=>im[r.snagId]=r);
+    let t=0,p=0,d=0,i=0;
+    SNAGS.forEach(s=>{t++;const st=(im[s.snagId]||{}).status||'Pending';if(st==='Pending')p++;else if(st==='Done')d++;else if(st==='InProgress')i++;else p++;});
+    updateStats(t,p,i,d);
+  } else {
+    const ft=ACTIVE_FLAT.flatType;
+    const im={};(A_INSPECTIONS[flatId]||[]).forEach(r=>im[r.assetId]=r);
+    let t=0,p=0,d=0,i=0;
+    (ASSETS[ft]||[]).forEach(a=>{t++;const st=(im[a.assetId]||{}).status||'Pending';if(st==='Pending')p++;else if(st==='Done')d++;else if(st==='InProgress')i++;else p++;});
+    updateStats(t,p,i,d);
+  }
+}
+
+// ROUND TOGGLE
+function toggleCol(col,btn){
+  ACTIVE_COL[col]=!ACTIVE_COL[col];
+  btn.classList.toggle('active',ACTIVE_COL[col]);
+  document.querySelectorAll('.col-'+col).forEach(el=>el.classList.toggle('hidden',!ACTIVE_COL[col]));
+}
+
+// PHOTO UPLOAD — FIX 1: direct triggers, no popup modal
+// Called from data-attr buttons — reads context from element
+function setUploadCtx(el) {
+  UPLOAD_CTX = {
+    flatId : el.getAttribute('data-flatid'),
+    refId  : el.getAttribute('data-refid'),
+    round  : el.getAttribute('data-round'),
+    section: el.getAttribute('data-section')
+  };
+}
+function handleGalleryBtn(el) { setUploadCtx(el); document.getElementById('photoFileInput').click(); }
+
+// Keep old name for compat
+function handleUploadBtn(el) {
+  setUploadCtx(el);
+  openModal('photoChoiceModal');
+}
+
+function setUploadCtx(el) {
+  UPLOAD_CTX = {
+    flatId : el.getAttribute('data-flatid'),
+    refId  : el.getAttribute('data-refid'),
+    round  : el.getAttribute('data-round'),
+    section: el.getAttribute('data-section')
+  };
+}
+
+function handleDelPhoto(el) {
+  var photoId = el.getAttribute('data-photoid');
+  var flatId  = el.getAttribute('data-flatid');
+  if (!confirm('Delete this photo?')) return;
+  call('deletePhoto', [photoId, SESSION.username], function() {
+    if (PHOTOS[flatId]) {
+      PHOTOS[flatId] = PHOTOS[flatId].filter(function(p) { return p.photoId !== photoId; });
+    }
+    showToast('🗑 Photo deleted', 'success');
+    renderCurrentTable();
+  });
+}
+
+function viewPhoto(viewUrl, round) {
+  if (!viewUrl) { showToast('⚠ No media URL', 'error'); return; }
+  var fileId  = '';
+  var m = (viewUrl||'').match(/\/d\/([^\/\?]+)/);
+  if (m) fileId = m[1];
+  var img   = document.getElementById('photoModalImg');
+  var link  = document.getElementById('photoModalLink');
+  var title = document.getElementById('photoModalTitle');
+  var err   = document.getElementById('photoModalErr');
+  err.style.display = 'none';
+  link.href = viewUrl;
+  document.getElementById('photoModalErrLink').href = viewUrl;
+
+  var thumbUrl = fileId
+    ? 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w800'
+    : viewUrl;
+  img.src = thumbUrl;
+  img.style.display = 'block';
+  title.textContent = (round||'') + ' — Photo';
+  openModal('photoModal');
+}
+
+function viewPhotoFromEl(el) {
+  viewPhoto(el.getAttribute('data-viewurl'), el.getAttribute('data-round'));
+}
+
+function handlePhotoFile(evt) {
+  closeModal('photoChoiceModal');
+  var files = Array.from(evt.target.files);
+  evt.target.value = '';
+  if (!files.length) return;
+  if (!UPLOAD_CTX) { showToast('⚠ Upload context lost', 'error'); return; }
+
+  var flatId  = UPLOAD_CTX.flatId;
+  var refId   = UPLOAD_CTX.refId;
+  var round   = UPLOAD_CTX.round;
+  var section = UPLOAD_CTX.section;
+  UPLOAD_CTX  = null;
+
+  var maxBytes = 10 * 1024 * 1024;
+  var valid = files.filter(function(f) {
+    if (f.size > maxBytes) {
+      showToast('⚠ ' + f.name + ' too large (max 10MB), skipped.', 'error');
+      return false;
+    }
+    return true;
+  });
+
+  if (!valid.length) return;
+
+  var total   = valid.length;
+  var done    = 0;
+  var failed  = 0;
+
+  showToast('⏫ Uploading ' + total + ' photo' + (total>1?'s':'') + '...', 'upload');
+
+  function uploadOne(file) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var b64 = e.target.result.split(',')[1];
+      call('uploadPhoto', [flatId, refId, round, b64, file.type, file.name, SESSION.username, section],
+        function(res) {
+          if (!PHOTOS[flatId]) PHOTOS[flatId] = [];
+          PHOTOS[flatId].push({
+            photoId : res.photoId, flatId: flatId, refId: refId,
+            round   : round, section: section,
+            fileId  : res.fileId, viewUrl: res.viewUrl, thumbUrl: res.thumbUrl
+          });
+          done++;
+          if (done + failed >= total) {
+            showToast('📷 ' + done + ' photo' + (done>1?'s':'') + ' uploaded!' + (failed?' ('+failed+' failed)':''), done?'success':'error');
+            renderCurrentTable();
+          }
+        }
+      );
+    };
+    reader.onerror = function() {
+      failed++;
+      if (done + failed >= total) {
+        showToast('📷 ' + done + ' uploaded, ' + failed + ' failed.', done?'success':'error');
+        renderCurrentTable();
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Upload sequentially to avoid overloading GAS
+  var queue = valid.slice();
+  function nextUpload() {
+    if (!queue.length) return;
+    var file = queue.shift();
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var b64 = e.target.result.split(',')[1];
+      call('uploadPhoto', [flatId, refId, round, b64, file.type, file.name, SESSION.username, section],
+        function(res) {
+          if (!PHOTOS[flatId]) PHOTOS[flatId] = [];
+          PHOTOS[flatId].push({
+            photoId : res.photoId, flatId: flatId, refId: refId,
+            round   : round, section: section,
+            fileId  : res.fileId, viewUrl: res.viewUrl, thumbUrl: res.thumbUrl
+          });
+          done++;
+          showToast('⏫ Uploaded ' + done + '/' + total + '...', 'upload');
+          if (done + failed >= total) {
+            showToast('📷 ' + done + ' photo' + (done>1?'s':'') + ' uploaded!', 'success');
+            renderCurrentTable();
+          } else {
+            nextUpload();
+          }
+        }
+      );
+    };
+    reader.onerror = function() {
+      failed++; done++;
+      nextUpload();
+    };
+    reader.readAsDataURL(file);
+  }
+  nextUpload();
+}
+
+
+// TEAM
+function loadTeam(){call('getTeam',[],t=>{TEAM=t||[];renderTeam();});}
+
+function renderTeam(){
+  const wrap=document.getElementById('teamContent');
+  if(!TEAM.length){wrap.innerHTML='<div class="empty"><span class="empty-icon">👥</span><div class="empty-txt">No team members yet</div></div>';return;}
+  const rc=r=>r==='Admin'?'role-Admin':r==='Snag Team'?'role-Snag':r==='De-Snag Team'?'role-De-Snag':'role-Viewer';
+  const ini=n=>{const p=n.split(/[\s._]/);return p[0][0].toUpperCase()+(p[1]?p[1][0].toUpperCase():'');};
+  wrap.innerHTML=`<div class="team-grid">${TEAM.map(u=>`
+    <div class="team-card">
+      <div class="team-card-top">
+        <div class="avatar">${ini(u.username)}</div>
+        <div><div class="team-name">${u.username}</div><span class="team-role-badge ${rc(u.role)}">${u.role}</span></div>
+      </div>
+      ${isAdmin()?`<div class="team-actions">
+        <button class="btn-sm btn-edit" onclick="openEditTeam('${u.userId}','${u.username}','${u.role}')">✏ Edit</button>
+        <button class="btn-sm btn-del"  onclick="deleteTeamMember('${u.userId}','${u.username}')">🗑 Remove</button>
+      </div>`:''}
+    </div>`).join('')}</div>`;
+}
+
+function openAddTeam(){
+  document.getElementById('teamModalTitle').textContent='Add Team Member';
+  ['tmUserId','tmUsername','tmPin'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('tmRole').value='Snag Team';
+  openModal('teamModal');
+}
+
+function openEditTeam(userId,username,role){
+  document.getElementById('teamModalTitle').textContent='Edit Team Member';
+  document.getElementById('tmUserId').value=userId;
+  document.getElementById('tmUsername').value=username;
+  document.getElementById('tmPin').value='';
+  document.getElementById('tmRole').value=role;
+  openModal('teamModal');
+}
+
+function saveTeamMember(){
+  const id=document.getElementById('tmUserId').value.trim();
+  const user=document.getElementById('tmUsername').value.trim();
+  const pin=document.getElementById('tmPin').value.trim();
+  const role=document.getElementById('tmRole').value;
+  if(!user){showToast('Enter a username','error');return;}
+  if(!id&&!pin){showToast('Enter a PIN for new member','error');return;}
+  call('saveTeam',[id||null,user,pin,role],()=>{
+    closeModal('teamModal');showToast('✅ Team updated','success');
+    loadTeam();loadUsernames();
+  });
+}
+
+function deleteTeamMember(userId,username){
+  if(!confirm(`Remove "${username}" from the team?`))return;
+  call('deleteTeam',[userId],()=>{showToast('🗑 Removed','success');loadTeam();loadUsernames();});
+}
+
+// LOG
+function buildLogFlatFilter(){
+  const sel=document.getElementById('logFlatFilter');
+  sel.innerHTML='<option value="">All Flats</option>'+FLATS.map(f=>`<option value="${f.flatId}">${f.tower} - ${f.flatNo}</option>`).join('');
+}
+
+function renderLogRows(logs){
+  const wrap=document.getElementById('logContent');
+  if(!logs||!logs.length){
+    wrap.innerHTML='<div class="empty"><span class="empty-icon">📜</span><div class="empty-txt">No activity yet</div></div>';
+    return;
+  }
+  const rows=logs.map(function(l){
+    let time='—';
+    try{if(l.timestamp)time=new Date(l.timestamp).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}catch(e){}
+    const sec=l.section||'snag';
+    const nv=String(l.newVal||'').startsWith('http')?'<a href="'+l.newVal+'" target="_blank" style="color:var(--accent)">📷 view</a>':(l.newVal||'—');
+    const ov=String(l.oldVal||'').startsWith('http')?'<a href="'+l.oldVal+'" target="_blank" style="color:var(--accent)">📷 view</a>':(l.oldVal||'—');
+    return '<tr>'
+      +'<td class="log-time">'+time+'</td>'
+      +'<td><strong>'+(l.changedBy||'—')+'</strong></td>'
+      +'<td>'+(l.tower||'—')+'</td>'
+      +'<td>'+(l.floor||'—')+'</td>'
+      +'<td>'+(l.flatNo||'—')+'</td>'
+      +'<td><span class="log-sec-'+sec+'">'+sec.toUpperCase()+'</span></td>'
+      +'<td style="font-size:11px;color:var(--muted)">'+(l.location||'—')+'</td>'
+      +'<td style="max-width:180px;font-size:11px">'+((l.pointLabel||'').substring(0,45))+'</td>'
+      +'<td><span class="log-badge">'+(l.columnHeader||'—')+'</span></td>'
+      +'<td style="color:var(--danger);font-size:12px;max-width:120px">'+ov+'</td>'
+      +'<td style="color:var(--success);font-size:12px;max-width:120px">'+nv+'</td>'
+      +'</tr>';
+  }).join('');
+  wrap.innerHTML='<div style="overflow-x:auto"><table class="log-table">'
+    +'<thead><tr><th>Time</th><th>By</th><th>Tower</th><th>Floor</th><th>Flat No.</th>'
+    +'<th>Section</th><th>Location</th><th>Point</th><th>Column</th><th>Old Value</th><th>New Value</th>'
+    +'</tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+function loadLog(){
+  document.getElementById('logContent').innerHTML='<div class="loading"><div class="spinner"></div>Loading...</div>';
+  var flatId=document.getElementById('logFlatFilter').value||null;
+  var sec=document.getElementById('logSecFilter').value||null;
+  call('getActivityLog',[flatId,sec],function(logs){
+    renderLogRows(Array.isArray(logs)?logs:[]);
+  });
+}
+
+
+// ── DASHBOARD ────────────────────────────────────────────────
+function initDashboardFilters() {
+  var towers = [...new Set(FLATS.map(function(f){return f.tower;}))].sort();
+  var sel = document.getElementById('dbTower');
+  sel.innerHTML = '<option value="">All Towers</option>' +
+    towers.map(function(t){return '<option>'+t+'</option>';}).join('');
+}
+
+function onDbTowerChange() {
+  var tower = document.getElementById('dbTower').value;
+  var floors = [...new Set(FLATS.filter(function(f){return !tower||f.tower===tower;}).map(function(f){return Number(f.floor);}))].sort(function(a,b){return a-b;});
+  document.getElementById('dbFloor').innerHTML = '<option value="">All Floors</option>' +
+    floors.map(function(f){return '<option>'+f+'</option>';}).join('');
+  document.getElementById('dbFlat').innerHTML = '<option value="">All Flats</option>';
+}
+
+function onDbFloorChange() {
+  var tower = document.getElementById('dbTower').value;
+  var floor = document.getElementById('dbFloor').value;
+  var list  = FLATS.filter(function(f){
+    return (!tower || f.tower===tower) && (!floor || String(f.floor)===String(floor));
+  }).sort(function(a,b){return a.flatNo.localeCompare(b.flatNo);});
+  document.getElementById('dbFlat').innerHTML = '<option value="">All Flats</option>' +
+    list.map(function(f){return '<option value="'+f.flatId+'">'+f.tower+' - '+f.flatNo+'</option>';}).join('');
+}
+
+function generateDashboard() {
+  var flatId  = document.getElementById('dbFlat').value;
+  var section = document.getElementById('dbSection').value;
+  var tower   = document.getElementById('dbTower').value;
+  var floor   = document.getElementById('dbFloor').value;
+
+  var reportType = document.getElementById('dbReportType').value;
+  document.getElementById('dbEmpty').classList.add('hidden');
+  document.getElementById('dbReport1').classList.add('hidden');
+  document.getElementById('dbReport2').classList.add('hidden');
+
+  // Determine which flats to include
+  var targetFlats = FLATS.filter(function(f){
+    if (flatId  && f.flatId !== flatId) return false;
+    if (tower   && f.tower  !== tower)  return false;
+    if (floor   && String(f.floor) !== String(floor)) return false;
+    return true;
+  });
+
+  if (!targetFlats.length) { showToast('No flats match filter', 'error'); return; }
+
+  showToast('⏳ Generating...', 'info');
+
+  // Load all inspections + master for selected flats
+  var loaded = 0;
+  var needed = targetFlats.length;
+  var allInsp = {}; // flatId -> []
+
+  targetFlats.forEach(function(flat) {
+    var fn = section === 'asset' ? 'getAssetInspections' : 'getInspections';
+    // Use cached if available
+    var cache = section === 'asset' ? A_INSPECTIONS[flat.flatId] : INSPECTIONS[flat.flatId];
+    if (cache) {
+      allInsp[flat.flatId] = cache;
+      loaded++;
+      if (loaded >= needed) {
+        if (reportType === 'tower') buildTowerReport(targetFlats, allInsp, section);
+        else buildDashboard(targetFlats, allInsp, section);
+      }
+    } else {
+      call(fn, [flat.flatId], function(rows) {
+        if (section === 'asset') A_INSPECTIONS[flat.flatId] = rows || [];
+        else                      INSPECTIONS[flat.flatId]  = rows || [];
+        allInsp[flat.flatId] = rows || [];
+        loaded++;
+        if (loaded >= needed) {
+        if (reportType === 'tower') buildTowerReport(targetFlats, allInsp, section);
+        else buildDashboard(targetFlats, allInsp, section);
+      }
+      });
+    }
+  });
+}
+
+function buildDashboard(targetFlats, allInsp, section) {
+  var masterList = section === 'asset'
+    ? Object.values(ASSETS).flat()
+    : SNAGS;
+
+  // If asset master not loaded yet, load it
+  if (section === 'asset' && !masterList.length) {
+    var types = [...new Set(targetFlats.map(function(f){return f.flatType;}))];
+    var loaded2 = 0;
+    types.forEach(function(ft) {
+      if (ASSETS[ft]) { loaded2++; if(loaded2>=types.length) buildDashboard(targetFlats,allInsp,section); }
+      else call('getAssetMaster',[ft],function(a){ ASSETS[ft]=a||[]; loaded2++; if(loaded2>=types.length) buildDashboard(targetFlats,allInsp,section); });
+    });
+    return;
+  }
+
+  // Build inspection map: key = flatId+refId → status
+  var inspMap = {};
+  targetFlats.forEach(function(flat) {
+    (allInsp[flat.flatId]||[]).forEach(function(r) {
+      var key = flat.flatId + '|' + (r.snagId || r.assetId);
+      inspMap[key] = r.status || 'Pending';
+    });
+  });
+
+  // ── REPORT 1: Checking Area × Status counts ──────────────
+  var areaKey = section === 'asset' ? 'respPerson' : 'checkingArea';
+  var idKey   = section === 'asset' ? 'assetId'    : 'snagId';
+
+  // Get unique checking areas
+  var areas = [];
+  var areaSet = {};
+  masterList.forEach(function(s) {
+    var a = s[areaKey] || 'Unknown';
+    if (!areaSet[a]) { areaSet[a] = true; areas.push(a); }
+  });
+  areas.sort();
+
+  // For each flat × area, count statuses
+  var statuses = ['Pending','InProgress','Done','NA'];
+  // area → {Pending, InProgress, Done, NA, Total, SnagError}
+  // SnagError = has any remark text AND status is Pending or InProgress
+  var areaCounts = {};
+  areas.forEach(function(a){ areaCounts[a] = {Pending:0,InProgress:0,Done:0,NA:0,Total:0,SnagError:0}; });
+
+  // Build remark map: key = flatId+refId → has any remark?
+  var remarkMap = {};
+  targetFlats.forEach(function(flat) {
+    var rows = section === 'asset' ? (A_INSPECTIONS[flat.flatId]||[]) : (INSPECTIONS[flat.flatId]||[]);
+    rows.forEach(function(r) {
+      var ref = r.snagId || r.assetId;
+      var key = flat.flatId + '|' + ref;
+      var hasRemark = !!(
+        (r.r1SnagRemark    && String(r.r1SnagRemark).trim())    ||
+        (r.r1DeSnagRemark  && String(r.r1DeSnagRemark).trim())  ||
+        (r.r2SnagRemark    && String(r.r2SnagRemark).trim())    ||
+        (r.r2DeSnagRemark  && String(r.r2DeSnagRemark).trim())
+      );
+      remarkMap[key] = hasRemark;
+    });
+  });
+
+  targetFlats.forEach(function(flat) {
+    var flatMaster = section === 'asset' ? (ASSETS[flat.flatType]||[]) : masterList;
+    flatMaster.forEach(function(s) {
+      var area   = s[areaKey] || 'Unknown';
+      var key    = flat.flatId + '|' + s[idKey];
+      var status = inspMap[key] || 'Pending';
+      var hasRem = remarkMap[key] || false;
+      // Snag Error = has remark AND not Done/NA
+      // Snag Error = has remark AND status is NOT Done (Pending, InProgress, NA all count)
+      var isError = hasRem && status !== 'Done';
+      if (areaCounts[area]) {
+        areaCounts[area][status] = (areaCounts[area][status]||0) + 1;
+        areaCounts[area].Total++;
+        if (isError) areaCounts[area].SnagError++;
+      }
+    });
+  });
+
+  // Render area table
+  var thStyle = 'background:linear-gradient(180deg,#1e3a5f,#0f2744);color:#fff;padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;text-align:center';
+  var thead = document.getElementById('dbAreaHead');
+  var tbody = document.getElementById('dbAreaBody');
+  thead.innerHTML = '<tr>'
+    + '<th style="'+thStyle+';text-align:left;min-width:200px">Checking Area</th>'
+    + '<th style="'+thStyle+'">Pending</th>'
+    + '<th style="'+thStyle+'">Total</th>'
+    + '<th style="'+thStyle+'">Snag Errors</th>'
+    + '<th style="'+thStyle+'">Snag Error %</th>'
+    + '</tr>';
+
+  var totals = {Pending:0,InProgress:0,Done:0,NA:0,Total:0,SnagError:0};
+  tbody.innerHTML = areas.map(function(a) {
+    var c = areaCounts[a];
+    totals.Pending    += c.Pending||0;
+    totals.InProgress += c.InProgress||0;
+    totals.Done       += c.Done||0;
+    totals.NA         += c.NA||0;
+    totals.Total      += c.Total;
+    totals.SnagError  += c.SnagError||0;
+    var errPct = c.Total ? Math.round((c.SnagError||0)/c.Total*100) : 0;
+    var errCol = errPct===0 ? '#15803d' : errPct<=25 ? '#d97706' : '#b91c1c';
+    return '<tr>'
+      +'<td style="padding:9px 14px;font-weight:600;color:#0f2744;font-size:13px;border-bottom:1px solid #f1f5f9">'+a+'</td>'
+      +'<td style="padding:9px 14px;text-align:center;font-size:13px;font-weight:700;border-bottom:1px solid #f1f5f9;background:#fee2e2;color:#b91c1c">'+(c.Pending||0)+'</td>'
+      +'<td style="padding:9px 14px;text-align:center;font-size:13px;font-weight:700;border-bottom:1px solid #f1f5f9">'+(c.Total||0)+'</td>'
+      +'<td style="padding:9px 14px;text-align:center;font-size:13px;font-weight:700;border-bottom:1px solid #f1f5f9;background:#fff1f2;color:#b91c1c">'+(c.SnagError||0)+'</td>'
+      +'<td style="padding:9px 14px;text-align:center;font-size:13px;font-weight:900;border-bottom:1px solid #f1f5f9;color:'+errCol+'">'+errPct+'%</td>'
+      +'</tr>';
+  }).join('');
+
+  // Total row
+  var totalErrPct = totals.Total ? Math.round(totals.SnagError/totals.Total*100) : 0;
+  var totalErrCol = totalErrPct===0?'#15803d':totalErrPct<=25?'#d97706':'#b91c1c';
+  var ts = 'padding:11px 14px;font-size:13px;font-weight:900;border-top:2px solid #cbd5e1';
+  tbody.innerHTML += '<tr style="background:#f0f4f8">'
+    +'<td style="'+ts+';color:#0f2744">TOTAL</td>'
+    +'<td style="'+ts+';text-align:center;color:#b91c1c">'+totals.Pending+'</td>'
+    +'<td style="'+ts+';text-align:center">'+totals.Total+'</td>'
+    +'<td style="'+ts+';text-align:center;color:#b91c1c;background:#fff1f2">'+totals.SnagError+'</td>'
+    +'<td style="'+ts+';text-align:center;color:'+totalErrCol+'">'+totalErrPct+'%</td>'
+    +'</tr>';
+
+  document.getElementById('dbReport1').classList.remove('hidden');
+
+  // ── REPORT 2: Flat wise responsible person table ──────────
+  var respKey  = section === 'asset' ? 'respPerson' : 'respName';
+  var pointKey = section === 'asset' ? 'assetPoint' : 'snagPoint';
+
+  // Get unique responsible persons
+  var persons = [];
+  var personSet = {};
+  masterList.forEach(function(s) {
+    var p = s[respKey] || 'Unknown';
+    if (!personSet[p]) { personSet[p] = true; persons.push(p); }
+  });
+  persons.sort();
+
+  // For each flat, count pending items per responsible person
+  var rhead = document.getElementById('dbRespHead');
+  var rbody = document.getElementById('dbRespBody');
+
+  rhead.innerHTML = '<tr>'
+    + '<th style="background:linear-gradient(180deg,#1e3a5f,#0f2744);color:#fff;padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:left;min-width:120px">Flat No.</th>'
+    + persons.map(function(p){ return '<th style="background:linear-gradient(180deg,#1e3a5f,#0f2744);color:#fff;padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:center;white-space:nowrap">'+p+'</th>'; }).join('')
+    + '<th style="background:linear-gradient(180deg,#1e3a5f,#0f2744);color:#fff;padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:center">Total Pending</th>'
+    + '</tr>';
+
+  rbody.innerHTML = targetFlats.map(function(flat) {
+    var flatMaster = section === 'asset' ? (ASSETS[flat.flatType]||[]) : masterList;
+    var personPend = {};
+    persons.forEach(function(p){ personPend[p]=0; });
+    // Also count total items per person (for error %)
+    var personTotal = {};
+    var personError = {};
+    persons.forEach(function(p){ personTotal[p]=0; personError[p]=0; });
+    flatMaster.forEach(function(s) {
+      var p      = s[respKey] || 'Unknown';
+      var key    = flat.flatId + '|' + s[idKey];
+      var st     = inspMap[key] || 'Pending';
+      var hasRem = remarkMap[key] || false;
+      var isErr  = hasRem && st !== 'Done';
+      personTotal[p] = (personTotal[p]||0) + 1;
+      if (isErr) personError[p] = (personError[p]||0) + 1;
+    });
+    var totalErr = Object.values(personError).reduce(function(a,b){return a+b;},0);
+    var totalAll = Object.values(personTotal).reduce(function(a,b){return a+b;},0);
+    return '<tr>'
+      +'<td style="padding:8px 14px;font-weight:700;color:#0f2744;border-bottom:1px solid #f1f5f9">'+flat.tower+' - '+flat.flatNo+'</td>'
+      + persons.map(function(p){
+          var n   = personError[p]||0;
+          var tot = personTotal[p]||0;
+          var pct = tot ? Math.round(n/tot*100) : 0;
+          var txt = n > 0 ? n+'('+pct+'%)' : '✓';
+          return '<td style="padding:8px 14px;text-align:center;font-weight:700;border-bottom:1px solid #f1f5f9;'
+            +(n>0?'color:#b91c1c;background:#fff5f5':'color:#15803d;background:#f0fdf4')
+            +'">'+txt+'</td>';
+        }).join('')
+      +'<td style="padding:8px 14px;text-align:center;font-weight:900;border-bottom:1px solid #f1f5f9;'
+      +(totalErr>0?'color:#b91c1c':'color:#15803d')+'">'+
+      (totalErr>0 ? totalErr+'('+(totalAll?Math.round(totalErr/totalAll*100):0)+'%)' : '✓')
+      +'</td>'
+      +'</tr>';
+  }).join('');
+
+  document.getElementById('dbReport2').classList.remove('hidden');
+  showToast('✅ Report generated', 'success');
+}
+
+function downloadDashboardPDF() {
+  var section = document.getElementById('dbSection').value;
+  var tower   = document.getElementById('dbTower').value;
+  var floor   = document.getElementById('dbFloor').value;
+  var flatSel = document.getElementById('dbFlat');
+  var flatLbl = flatSel.options[flatSel.selectedIndex] ? flatSel.options[flatSel.selectedIndex].text : 'All Flats';
+
+  var win = window.open('', '_blank');
+  var r1  = document.getElementById('dbReport1').innerHTML;
+  var r2  = document.getElementById('dbReport2').innerHTML;
+  var title = 'Orchard Amritaya — ' + (section==='asset'?'Asset':'Snag') + ' Check Report';
+  var subtitle = [tower||'All Towers', floor?'Floor '+floor:'All Floors', flatLbl].filter(Boolean).join(' | ');
+
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<title>'+title+'</title>'
+    +'<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font-family:Arial,sans-serif;font-size:13px;color:#111;padding:28px 32px}'
+    +'.header{text-align:center;margin-bottom:28px;padding-bottom:18px;border-bottom:3px solid #0f2744}'
+    +'.header h1{font-size:22px;font-weight:900;color:#0f2744;letter-spacing:-.5px}'
+    +'.header .sub{font-size:13px;color:#475569;margin-top:6px}'
+    +'.header .date{font-size:11px;color:#94a3b8;margin-top:4px}'
+    +'.section-title{font-size:16px;font-weight:800;color:#0f2744;margin:28px 0 12px;padding-left:8px;border-left:4px solid #0f2744}'
+    +'table{width:100%;border-collapse:collapse;margin-bottom:8px;page-break-inside:avoid}'
+    +'th{background:#0f2744!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;'
+    +'color:#fff!important;padding:10px 12px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;text-align:center}'
+    +'th:first-child{text-align:left}'
+    +'td{padding:9px 12px;border:1px solid #e2e8f0;font-size:13px;vertical-align:middle}'
+    +'tr:nth-child(even) td{background:#f8fafc}'
+    +'tfoot td,tr.total-row td{background:#f0f4f8!important;font-weight:900;font-size:13px;border-top:2px solid #0f2744}'
+    +'.err{color:#b91c1c!important;font-weight:800}'
+    +'.ok{color:#15803d!important;font-weight:800}'
+    +'.footer{text-align:center;margin-top:28px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:14px}'
+    +'@media print{@page{margin:16mm}body{padding:0}}'
+    +'</style></head><body>'
+    +'<div class="header">'
+    +'<h1>'+title+'</h1>'
+    +'<div class="sub">'+subtitle+'</div>'
+    +'<div class="date">Generated: '+new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})+'</div>'
+    +'</div>'
+    +'<div class="section-title">1. Checking Area — Snag Error Summary</div>'
+    + document.getElementById('dbReport1').querySelector('table').outerHTML
+    +'<div class="section-title">2. Responsible Person — Snag Errors by Flat</div>'
+    + document.getElementById('dbReport2').querySelector('table').outerHTML
+    +'<div class="footer">Orchard Amritaya Snag Check System &nbsp;|&nbsp; Confidential &nbsp;|&nbsp; Oswal Group</div>'
+    +'</body></html>');
+  win.document.close();
+  setTimeout(function(){ win.print(); }, 800);
+}
+
+// ── EXCEL DOWNLOAD ───────────────────────────────────────────
+function downloadExcel() {
+  if (!ACTIVE_FLAT) { showToast('Select a flat first', 'error'); return; }
+  var flatId  = ACTIVE_FLAT.flatId;
+  var section = ACTIVE_SECTION;
+  var master  = section === 'asset' ? (ASSETS[ACTIVE_FLAT.flatType]||[]) : SNAGS;
+  var inspMap = {};
+  var src = section === 'asset' ? (A_INSPECTIONS[flatId]||[]) : (INSPECTIONS[flatId]||[]);
+  src.forEach(function(r){ inspMap[r.snagId||r.assetId] = r; });
+  // Multiple photos per round — collect all links
+  var photoMap = {};
+  (PHOTOS[flatId]||[]).filter(function(p){return !section||p.section===section;}).forEach(function(p){
+    if (!photoMap[p.refId]) photoMap[p.refId] = {};
+    if (!photoMap[p.refId][p.round]) photoMap[p.refId][p.round] = [];
+    photoMap[p.refId][p.round].push(p.viewUrl);
+  });
+
+  var idKey  = section === 'asset' ? 'assetId'   : 'snagId';
+  var ptKey  = section === 'asset' ? 'assetPoint': 'snagPoint';
+  var rcKey  = section === 'asset' ? 'respPerson': 'respContractor';
+  var rnKey  = section === 'asset' ? 'respPerson': 'respName';
+
+  var headers = ['Location','Point','Resp. Contractor','Checking Area','Resp. Name',
+    'Status','R1 Snag Remark','R1 De-Snag Remark','R2 Snag Remark','R2 De-Snag Remark',
+    'R1S Photo','R1D Photo','R2S Photo','R2D Photo'];
+  if (section === 'asset') headers.splice(2, 0, 'Qty');
+
+  var rows = [headers];
+  master.forEach(function(s) {
+    var ref  = s[idKey];
+    var insp = inspMap[ref] || {};
+    var pm   = photoMap[ref] || {};
+    var ovFn = function(field) { return getOverrideVal(flatId, ref, section, field, s[field]||''); };
+    var row  = [
+      s.location||'', s[ptKey]||'',
+      ovFn(rcKey)||'', s.checkingArea||'', ovFn(rnKey)||'',
+      insp.status||'Pending',
+      insp.r1SnagRemark||'', insp.r1DeSnagRemark||'',
+      insp.r2SnagRemark||'', insp.r2DeSnagRemark||'',
+      (pm['R1S']||[]).join(', ')||'', (pm['R1D']||[]).join(', ')||'', (pm['R2S']||[]).join(', ')||'', (pm['R2D']||[]).join(', ')||''
+    ];
+    if (section === 'asset') row.splice(2, 0, s.numbers||1);
+    rows.push(row);
+  });
+
+  var wb  = XLSX.utils.book_new();
+  var ws  = XLSX.utils.aoa_to_sheet(rows);
+  // Column widths
+  ws['!cols'] = headers.map(function(h,i){
+    return {wch: i===1?45:i===0?22:i>=10?45:20};
+  });
+  // Style header row bold
+  var range = XLSX.utils.decode_range(ws['!ref']);
+  for (var C = range.s.c; C <= range.e.c; C++) {
+    var cell = ws[XLSX.utils.encode_cell({r:0,c:C})];
+    if (cell) cell.s = {font:{bold:true},fill:{fgColor:{rgb:'0F2744'}},font:{color:{rgb:'FFFFFF'},bold:true}};
+  }
+
+  var sheetName = ACTIVE_FLAT.tower+'-'+ACTIVE_FLAT.flatNo+'-'+(section==='asset'?'Asset':'Snag');
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  XLSX.writeFile(wb, sheetName+'-Inspection.xlsx');
+  showToast('✅ Excel downloaded!', 'success');
+}
+
+// ── TOWER CONSOLIDATED REPORT ─────────────────────────────────
+function buildTowerReport(targetFlats, allInsp, section) {
+  var masterList = section === 'asset' ? Object.values(ASSETS).flat() : SNAGS;
+  var areaKey    = section === 'asset' ? 'respPerson'  : 'checkingArea';
+  var idKey      = section === 'asset' ? 'assetId'     : 'snagId';
+
+  // Build inspection + remark maps
+  var inspMap  = {};
+  var remarkMap = {};
+  targetFlats.forEach(function(flat) {
+    var rows = section === 'asset' ? (A_INSPECTIONS[flat.flatId]||[]) : (INSPECTIONS[flat.flatId]||[]);
+    rows.forEach(function(r) {
+      var ref = r.snagId || r.assetId;
+      var key = flat.flatId + '|' + ref;
+      inspMap[key]  = r.status || 'Pending';
+      remarkMap[key] = !!(
+        (r.r1SnagRemark   && String(r.r1SnagRemark).trim())   ||
+        (r.r1DeSnagRemark && String(r.r1DeSnagRemark).trim()) ||
+        (r.r2SnagRemark   && String(r.r2SnagRemark).trim())   ||
+        (r.r2DeSnagRemark && String(r.r2DeSnagRemark).trim())
+      );
+    });
+  });
+
+  // Get unique areas
+  var areas = []; var areaSet = {};
+  masterList.forEach(function(s){
+    var a = s[areaKey]||'Unknown';
+    if(!areaSet[a]){areaSet[a]=true;areas.push(a);}
+  });
+  areas.sort();
+
+  // Per area: total items, snag errors, error% (averaged across all flats)
+  var areaCounts = {};
+  areas.forEach(function(a){ areaCounts[a]={Total:0,SnagError:0,Pending:0}; });
+
+  targetFlats.forEach(function(flat) {
+    var fm = section==='asset'?(ASSETS[flat.flatType]||[]):masterList;
+    fm.forEach(function(s) {
+      var area   = s[areaKey]||'Unknown';
+      var key    = flat.flatId+'|'+s[idKey];
+      var status = inspMap[key]||'Pending';
+      var hasRem = remarkMap[key]||false;
+      var isErr  = hasRem && status!=='Done';
+      areaCounts[area].Total++;
+      areaCounts[area].Pending += (status==='Pending'||status==='InProgress')?1:0;
+      if(isErr) areaCounts[area].SnagError++;
+    });
+  });
+
+  // Render
+  var thStyle = 'background:linear-gradient(180deg,#1e3a5f,#0f2744);color:#fff;padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:center';
+  var thead = document.getElementById('dbAreaHead');
+  var tbody = document.getElementById('dbAreaBody');
+
+  var towerLabel = document.getElementById('dbTower').value || 'All Towers';
+  document.querySelector('#dbReport1 h2').textContent =
+    '📊 Tower Consolidated — ' + towerLabel + ' (' + section.toUpperCase() + ')';
+
+  thead.innerHTML = '<tr>'
+    +'<th style="'+thStyle+';text-align:left;min-width:200px">Checking Area</th>'
+    +'<th style="'+thStyle+'">Total Flats</th>'
+    +'<th style="'+thStyle+'">Pending</th>'
+    +'<th style="'+thStyle+'">Total Items</th>'
+    +'<th style="'+thStyle+'">Snag Errors</th>'
+    +'<th style="'+thStyle+'">Snag Error %</th>'
+    +'</tr>';
+
+  var totals = {Total:0,SnagError:0,Pending:0};
+  tbody.innerHTML = areas.map(function(a) {
+    var c      = areaCounts[a];
+    var errPct = c.Total ? Math.round(c.SnagError/c.Total*100) : 0;
+    var errCol = errPct===0?'#15803d':errPct<=25?'#d97706':'#b91c1c';
+    totals.Total      += c.Total;
+    totals.SnagError  += c.SnagError;
+    totals.Pending    += c.Pending;
+    return '<tr>'
+      +'<td style="padding:9px 14px;font-weight:600;color:#0f2744;font-size:13px;border-bottom:1px solid #f1f5f9">'+a+'</td>'
+      +'<td style="padding:9px 14px;text-align:center;font-size:13px;font-weight:700;border-bottom:1px solid #f1f5f9">'+targetFlats.length+'</td>'
+      +'<td style="padding:9px 14px;text-align:center;font-size:13px;font-weight:700;border-bottom:1px solid #f1f5f9;background:#fee2e2;color:#b91c1c">'+c.Pending+'</td>'
+      +'<td style="padding:9px 14px;text-align:center;font-size:13px;font-weight:700;border-bottom:1px solid #f1f5f9">'+c.Total+'</td>'
+      +'<td style="padding:9px 14px;text-align:center;font-size:13px;font-weight:700;border-bottom:1px solid #f1f5f9;background:#fff1f2;color:#b91c1c">'+c.SnagError+'</td>'
+      +'<td style="padding:9px 14px;text-align:center;font-size:13px;font-weight:900;border-bottom:1px solid #f1f5f9;color:'+errCol+'">'+errPct+'%</td>'
+      +'</tr>';
+  }).join('');
+
+  var tErrPct = totals.Total?Math.round(totals.SnagError/totals.Total*100):0;
+  var tErrCol = tErrPct===0?'#15803d':tErrPct<=25?'#d97706':'#b91c1c';
+  var ts = 'padding:11px 14px;font-size:13px;font-weight:900;border-top:2px solid #cbd5e1';
+  tbody.innerHTML += '<tr style="background:#f0f4f8">'
+    +'<td style="'+ts+';color:#0f2744">TOTAL</td>'
+    +'<td style="'+ts+';text-align:center">'+targetFlats.length+'</td>'
+    +'<td style="'+ts+';text-align:center;color:#b91c1c">'+totals.Pending+'</td>'
+    +'<td style="'+ts+';text-align:center">'+totals.Total+'</td>'
+    +'<td style="'+ts+';text-align:center;color:#b91c1c;background:#fff1f2">'+totals.SnagError+'</td>'
+    +'<td style="'+ts+';text-align:center;color:'+tErrCol+'">'+tErrPct+'%</td>'
+    +'</tr>';
+
+  document.getElementById('dbReport1').classList.remove('hidden');
+
+  // ── Responsible Person — consolidated across all flats in tower ──
+  var respKey = section === 'asset' ? 'respPerson' : 'respName';
+
+  // Aggregate totals per responsible person across ALL target flats
+  var personError = {}; var personTotal = {};
+  targetFlats.forEach(function(flat) {
+    var fm = section==='asset'?(ASSETS[flat.flatType]||[]):masterList;
+    fm.forEach(function(s) {
+      var p   = s[respKey] || 'Unknown';
+      var key = flat.flatId + '|' + s[idKey];
+      var st  = inspMap[key]  || 'Pending';
+      var rem = remarkMap[key] || false;
+      personTotal[p] = (personTotal[p]||0) + 1;
+      if (rem && st !== 'Done') personError[p] = (personError[p]||0) + 1;
+    });
+  });
+
+  var persons = Object.keys(personTotal).sort();
+  var rhead   = document.getElementById('dbRespHead');
+  var rbody   = document.getElementById('dbRespBody');
+  var thS     = 'background:linear-gradient(180deg,#1e3a5f,#0f2744);color:#fff;padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:center';
+
+  rhead.innerHTML = '<tr>'
+    + '<th style="'+thS+';text-align:left;min-width:220px">Responsible Person</th>'
+    + '<th style="'+thS+'">Total Items</th>'
+    + '<th style="'+thS+'">Snag Errors</th>'
+    + '<th style="'+thS+'">Snag Error %</th>'
+    + '</tr>';
+
+  var grandTotal = 0; var grandErr = 0;
+  rbody.innerHTML = persons.map(function(p) {
+    var tot = personTotal[p] || 0;
+    var err = personError[p] || 0;
+    var pct = tot ? Math.round(err/tot*100) : 0;
+    var col = err===0?'#15803d':pct<=25?'#d97706':'#b91c1c';
+    grandTotal += tot; grandErr += err;
+    return '<tr>'
+      +'<td style="padding:9px 14px;font-weight:700;color:#0f2744;font-size:13px;border-bottom:1px solid #f1f5f9">'+p+'</td>'
+      +'<td style="padding:9px 14px;text-align:center;font-size:13px;font-weight:700;border-bottom:1px solid #f1f5f9">'+tot+'</td>'
+      +'<td style="padding:9px 14px;text-align:center;font-size:13px;font-weight:700;border-bottom:1px solid #f1f5f9;'+(err>0?'background:#fff1f2;color:#b91c1c':'color:#15803d')+'">'+err+'</td>'
+      +'<td style="padding:9px 14px;text-align:center;font-size:13px;font-weight:900;border-bottom:1px solid #f1f5f9;color:'+col+'">'+pct+'%</td>'
+      +'</tr>';
+  }).join('');
+
+  // Grand total row
+  var gPct = grandTotal ? Math.round(grandErr/grandTotal*100) : 0;
+  var gCol = gPct===0?'#15803d':gPct<=25?'#d97706':'#b91c1c';
+  var ts   = 'padding:11px 14px;font-size:13px;font-weight:900;border-top:2px solid #cbd5e1';
+  rbody.innerHTML += '<tr style="background:#f0f4f8">'
+    +'<td style="'+ts+';color:#0f2744">TOTAL</td>'
+    +'<td style="'+ts+';text-align:center">'+grandTotal+'</td>'
+    +'<td style="'+ts+';text-align:center;color:#b91c1c;background:#fff1f2">'+grandErr+'</td>'
+    +'<td style="'+ts+';text-align:center;color:'+gCol+'">'+gPct+'%</td>'
+    +'</tr>';
+
+  document.getElementById('dbReport2').classList.remove('hidden');
+  showToast('✅ Tower report generated', 'success');
+}
+
+// Cell modal state
+var _cellSaveCallback = null;
+
+// Show read-only full text
+function showCell(title, text) {
+  text = text || '';
+  if (!title && !text) return;
+  document.getElementById('cellModalTitle').textContent    = title;
+  document.getElementById('cellModalBody').style.display  = 'block';
+  document.getElementById('cellModalBody').textContent    = text;
+  document.getElementById('cellModalInput').style.display = 'none';
+  document.getElementById('cellModalActions').style.display = 'none';
+  _cellSaveCallback = null;
+  openModal('cellModal');
+}
+
+// Show editable modal — cb(newValue) called on save
+function editCell(title, currentVal, cb) {
+  document.getElementById('cellModalTitle').textContent      = title;
+  document.getElementById('cellModalBody').style.display     = 'none';
+  document.getElementById('cellModalInput').style.display    = 'block';
+  document.getElementById('cellModalInput').value            = currentVal || '';
+  document.getElementById('cellModalActions').style.display  = 'flex';
+  _cellSaveCallback = cb;
+  openModal('cellModal');
+  // Focus and move cursor to end
+  var inp = document.getElementById('cellModalInput');
+  setTimeout(function(){ inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }, 100);
+}
+
+function saveCellEdit() {
+  var val = document.getElementById('cellModalInput').value;
+  if (_cellSaveCallback) _cellSaveCallback(val);
+  closeModal('cellModal');
+  _cellSaveCallback = null;
+}
+
+function cancelCellEdit() {
+  closeModal('cellModal');
+  _cellSaveCallback = null;
+}
+
+// ── ALL EVENT LISTENERS ──────────────────────────────────────
+(function(){
+  function on(id, ev, fn){ var el=document.getElementById(id); if(el) el.addEventListener(ev,fn); }
+  function onAll(sel, ev, fn){ document.querySelectorAll(sel).forEach(function(el){el.addEventListener(ev,fn);}); }
+
+  // Login
+  on('btnPinEye',   'click', togglePin);
+  on('btnLogin',    'click', doLogin);
+  on('loginPin',    'keydown', function(e){if(e.key==='Enter')doLogin();});
+
+  // Topbar
+  on('btnLogout',   'click', doLogout);
+
+  // Tabs
+  on('tabInspection','click', function(){switchTab('inspection');});
+  on('tabTeam',      'click', function(){switchTab('team');});
+  on('tabLog',       'click', function(){switchTab('log');});
+
+  // Section toggle
+  on('secSnag',  'click', function(){switchSection('snag');});
+  on('secAsset', 'click', function(){switchSection('asset');});
+
+  // Flat selectors
+  on('selTower', 'change', onTowerChange);
+  on('selFloor', 'change', onFloorChange);
+  on('selFlat',  'change', onFlatChange);
+
+  // Team
+  on('btnAddTeam',   'click', openAddTeam);
+  on('btnSaveTeam',  'click', saveTeamMember);
+  on('btnModalPinEye','click', toggleModalPin);
+
+  // Log
+  on('logFlatFilter', 'change', loadLog);
+  on('logSecFilter',  'change', loadLog);
+  on('btnRefreshLog', 'click',  loadLog);
+
+  // Modals close buttons
+  on('btnCloseCellModal',  'click', cancelCellEdit);
+  on('btnSaveCellEdit',    'click', saveCellEdit);
+  on('btnCancelCellEdit',  'click', cancelCellEdit);
+  // Ctrl+Enter saves
+  on('cellModalInput', 'keydown', function(e){
+    if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){saveCellEdit();}
+    if(e.key==='Escape'){cancelCellEdit();}
+  });
+  // Cell click delegation — show full text for truncated cells
+  document.addEventListener('click', function(e) {
+    var td = e.target.closest('td.txt-cell');
+    if (td && td.textContent.trim()) {
+      var header = td.closest('table') && td.cellIndex >= 0
+        ? (td.closest('table').rows[0] && td.closest('table').rows[0].cells[td.cellIndex]
+            ? td.closest('table').rows[0].cells[td.cellIndex].textContent.trim() : 'Detail')
+        : 'Detail';
+      showCell(header, td.textContent.trim());
+    }
+  });
+  on('btnCloseTeam',   'click', function(){closeModal('teamModal');});
+  on('btnCloseFlat',   'click', function(){closeModal('flatModal');});
+  on('btnClosePhoto',  'click', function(){closeModal('photoModal');});
+  on('btnCancelTeam',  'click', function(){closeModal('teamModal');});
+  on('btnCancelFlat',  'click', function(){closeModal('flatModal');});
+  on('btnCancelPhoto', 'click', function(){closeModal('photoModal');});
+
+  // Modal backgrounds
+  onAll('.modal-bg', 'click', function(e){if(e.target===this)this.classList.remove('open');});
+
+  // Photo file inputs
+  on('photoFileGallery', 'change', handlePhotoFile);
+  on('photoFileCamera',  'change', handlePhotoFile);
+
+  // Photo choice modal
+  on('btnClosePhotoChoice', 'click', function(){ closeModal('photoChoiceModal'); });
+  on('btnChooseGallery', 'click', function(){
+    closeModal('photoChoiceModal');
+    document.getElementById('photoFileGallery').click();
+  });
+  on('btnChooseCamera', 'click', function(){
+    closeModal('photoChoiceModal');
+    document.getElementById('photoFileCamera').click();
+  });
+
+  // Round toggles
+  ['r1s','r1d','r2s','r2d'].forEach(function(col){
+    on('tog-'+col, 'click', function(){toggleCol(col, this);});
+  });
+
+  // Dashboard
+  on('dbTower',         'change', onDbTowerChange);
+  on('dbFloor',         'change', onDbFloorChange);
+  on('tabDashboard',    'click',  function(){switchTab('dashboard');});
+  on('btnGenDashboard',   'click', generateDashboard);
+  on('btnDownloadPDF',    'click', downloadDashboardPDF);
+  on('btnExcelDownload',  'click', downloadExcel);
+})();
+</script>
+</body>
+</html>

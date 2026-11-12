@@ -1,0 +1,9 @@
+{
+  "regions": ["bom1"],
+  "functions": {
+    "app.py": {
+      "includeFiles": "{templates,static}/**",
+      "maxDuration": 60
+    }
+  }
+}
