@@ -164,15 +164,42 @@ function SnagSync_pull() {
 function SnagSync_readTab_(sheet, tbl) {
   const values = sheet.getDataRange().getValues();
   const headers = values[0].map(function (h) { return String(h).trim(); });
+  const idx = [];
+  for (let i = 1; i < values.length; i++) idx.push(i);
+  return SnagSync_buildRows_(headers, values, idx, tbl, sheet.getName());
+}
+
+// Rows the user has selected (one or several ranges), header row excluded
+function SnagSync_readSelected_(sheet, tbl) {
+  const values = sheet.getDataRange().getValues();
+  const headers = values[0].map(function (h) { return String(h).trim(); });
+  const list = sheet.getActiveRangeList();
+  const ranges = list ? list.getRanges() : [sheet.getActiveRange()];
+  const want = {};
+  ranges.forEach(function (r) {
+    if (!r) return;
+    const first = r.getRow();
+    for (let k = 0; k < r.getNumRows(); k++) {
+      const rowNo = first + k;                                // 1-based sheet row
+      if (rowNo >= 2 && rowNo <= values.length) want[rowNo - 1] = true;   // 0-based index in values
+    }
+  });
+  const idx = Object.keys(want).map(Number).sort(function (a, b) { return a - b; });
+  return SnagSync_buildRows_(headers, values, idx, tbl, sheet.getName());
+}
+
+function SnagSync_buildRows_(headers, values, idx, tbl, sheetName) {
   const pkIdx = headers.indexOf(SnagSync_PK[tbl]);
-  if (pkIdx < 0) throw new Error('Header "' + SnagSync_PK[tbl] + '" not found in tab ' + sheet.getName());
+  if (pkIdx < 0) throw new Error('Header "' + SnagSync_PK[tbl] + '" not found in tab ' + sheetName);
   const rows = [];
   const keys = [];
   const seen = {};
   let dups = 0;
-  for (let i = 1; i < values.length; i++) {
+  let blanks = 0;
+  for (let n = 0; n < idx.length; n++) {
+    const i = idx[n];
     const pk = values[i][pkIdx];
-    if (pk === '' || pk === null) continue;                  // blank rows are ignored
+    if (pk === '' || pk === null) { blanks++; continue; }    // blank rows are ignored
     const k = String(pk);
     if (seen[k]) { dups++; continue; }
     seen[k] = true;
@@ -188,7 +215,7 @@ function SnagSync_readTab_(sheet, tbl) {
     rows.push(o);
     keys.push(k);
   }
-  return { rows: rows, keys: keys, dups: dups };
+  return { rows: rows, keys: keys, dups: dups, blanks: blanks };
 }
 
 function SnagSync_pushActiveTab() {
@@ -235,6 +262,47 @@ function SnagSync_pushActiveTab() {
   }
 }
 
+// ── PUSH: selected rows of this tab -> Supabase (overwrite those rows only, nothing is deleted) ──
+function SnagSync_pushSelectedRows() {
+  const ui = SpreadsheetApp.getUi();
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const tbl = SnagSync_tableOfSheet_(sheet.getName());
+  if (!tbl) {
+    ui.alert('Tab "' + sheet.getName() + '" is not synced.\n\nSynced tabs: ' +
+             Object.keys(SnagSync_TABLES).map(function (t) { return SnagSync_TABLES[t]; }).join(', '));
+    return;
+  }
+  try {
+    const data = SnagSync_readSelected_(sheet, tbl);
+    if (!data.keys.length) {
+      ui.alert('Select one or more data rows (not only the header row) that have an ID in column "' +
+               SnagSync_PK[tbl] + '", then run this again. Nothing was changed.');
+      return;
+    }
+    if (data.dups) {
+      ui.alert('The selection has ' + data.dups + ' duplicate ID(s) in column "' + SnagSync_PK[tbl] +
+               '". Fix them first - nothing was changed.');
+      return;
+    }
+    const pv = SnagSync_rpc_('snag_push_preview', { p_table: tbl, p_keys: data.keys });
+    const msg = 'OVERWRITE the selected rows in Supabase table "' + tbl + '" (tab "' + sheet.getName() + '")?\n\n' +
+      'Selected rows with an ID : ' + data.keys.length + '\n' +
+      'Will be updated          : ' + pv.to_update + '\n' +
+      'Will be added            : ' + pv.to_insert + '\n' +
+      'Rows without an ID (skipped): ' + data.blanks + '\n\n' +
+      'Other rows in Supabase are not touched and nothing is deleted.\n' +
+      'Changes made to these rows in the web app that are not yet in this sheet will be lost.';
+    if (ui.alert('Snag Sync', msg, ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+    let done = 0;
+    for (let i = 0; i < data.rows.length; i += SnagSync_CHUNK) {
+      done += SnagSync_rpc_('snag_push_rows', { p_table: tbl, p_rows: data.rows.slice(i, i + SnagSync_CHUNK) });
+    }
+    ui.alert('Done.\n\nRows written to Supabase: ' + done);
+  } catch (err) {
+    ui.alert('Push failed: ' + err.message);
+  }
+}
+
 // ── WEB APP: webhook ping + Drive proxy (called by Supabase / Vercel) ──
 function doPost(e) {
   const params = (e && e.parameter) || {};
@@ -275,6 +343,7 @@ function SnagSync_driveDelete_(b) {
 // ── MENU + SETUP ────────────────────────────────────────────
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('Snag Sync')
+    .addItem('Overwrite Supabase from SELECTED rows...', 'SnagSync_pushSelectedRows')
     .addItem('Overwrite Supabase from THIS tab...', 'SnagSync_pushActiveTab')
     .addItem('Pull changes from Supabase now', 'SnagSync_pullNow')
     .addSeparator()
